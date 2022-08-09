@@ -14,10 +14,10 @@ bool CircleVisualField::check_sat(const Eigen::Vector3d &scope_dir, const Eigen:
     return std::acos(g_vec.dot(scope_dir) / g_vec.norm() / scope_dir.norm()) <= cone_angle;
 }
 
-std::vector<sat_state>
+std::vector<SatState>
 CircleVisualField::check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                                   const std::vector<sat_state> &sat_state) const {
-    std::vector<sat_state> res(0);
+                                   const std::vector<SatState> &sat_state) const {
+    std::vector<SatState> res(0);
     for (auto &sat: sat_state) {
         if (check_sat(scope_dir, scope_pos, sat.position)) {
             res.push_back(sat);
@@ -71,12 +71,12 @@ CircleVisualField::view_area_nums(const Eigen::Vector3d &scope_dir) const {
     return res;
 }
 
-std::vector<star>
+std::vector<Star>
 CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
 
     std::vector<int> areas = view_area_nums(scope_dir);
 
-    std::vector<star> res(12121 * static_cast<int>(areas.size()));
+    std::vector<Star> res(12121 * static_cast<int>(areas.size()));
 
     std::ifstream file_cat;
     file_cat.open(path_to_res + "/catalog.dat");
@@ -116,7 +116,7 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                     double mag = std::stod(line.substr(110, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
-                    res[counter_ex] = star{area_num, in_area_num, in_star_com, asc, dec, mag};
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag};
                     counter_ex++;
                 }
             } catch (...) {
@@ -140,7 +140,7 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                     double mag = std::stod(line.substr(83, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
-                    res[counter_ex] = star{area_num, in_area_num, in_star_com, asc, dec, mag};
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag};
                     counter_ex++;
                 }
             } catch (...) {

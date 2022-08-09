@@ -35,11 +35,11 @@ public:
     check_sat(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
               const Eigen::Vector3d &sat_pos) const = 0;
 
-    [[nodiscard]] virtual std::vector<sat_state>
+    [[nodiscard]] virtual std::vector<SatState>
     check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                    const std::vector<sat_state> &sat_state) const = 0;
+                    const std::vector<SatState> &sat_state) const = 0;
 
-    [[nodiscard]] virtual std::vector<star>
+    [[nodiscard]] virtual std::vector<Star>
     view_star_array(const Eigen::Vector3d &scope_dir) const = 0;
 
     [[nodiscard]] virtual std::vector<int>

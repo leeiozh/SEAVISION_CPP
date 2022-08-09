@@ -11,9 +11,11 @@ if (WIN32)
 endif (WIN32)
 
 find_package(Eigen3 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
 
 add_library(Polygon ${MY_PROJECT_SOURCES})
 
-target_link_libraries(Polygon PUBLIC Eigen3::Eigen)
+target_link_libraries(Polygon PUBLIC Eigen3::Eigen PkgConfig::FFTW)
 
 target_include_directories(Polygon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

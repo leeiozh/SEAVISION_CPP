@@ -21,12 +21,12 @@ public:
     [[nodiscard]] bool check_sat(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
                    const Eigen::Vector3d &sat_pos) const override;
 
-    [[nodiscard]] std::vector<sat_state> check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                                                         const std::vector<sat_state> &sat_state) const override;
+    [[nodiscard]] std::vector<SatState> check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
+                                                         const std::vector<SatState> &sat_state) const override;
 
     [[nodiscard]] std::vector<int> view_area_nums(const Eigen::Vector3d &scope_dir) const override;
 
-    [[nodiscard]] std::vector<star>
+    [[nodiscard]] std::vector<Star>
     view_star_array(const Eigen::Vector3d &scope_dir) const override;
 };
 

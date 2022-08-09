@@ -13,7 +13,10 @@ namespace Polygon {
 class ExponentForwardTransmissionFunction : public BaseTransmissionFunction {
 
 public:
-    double calc_trans_func(const double &x, const double &y) const override {
+
+    explicit ExponentForwardTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
+
+    [[nodiscard]] double calc_trans_func(const double &x, const double &y) const override {
         return 1 - std::exp(-trans_coeff * (x * x + y * y));
     }
 

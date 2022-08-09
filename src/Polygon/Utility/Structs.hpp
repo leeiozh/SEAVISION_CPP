@@ -10,14 +10,14 @@
 
 namespace Polygon {
 
-struct sat_state {
+struct SatState {
     int number;
     double radius;
     Eigen::Vector3d position;
     Eigen::Vector3d velocity;
 };
 
-struct star {
+struct Star {
     int area_number;
     int inarea_number;
     int instar_component;
@@ -26,36 +26,36 @@ struct star {
     double magnitude;
 };
 
-struct exter_params {
+struct ExterParams {
     double hwhm = 0;
     double p_diego = 0;
     double pr_diego = 0;
     double b_moffat = 3;
 };
 
-struct optic_params {
+struct OpticParams {
     double inp_diam;
     double out_diam;
     double trans_coeff;
     int iso_number = 1;
-    std::vector<double> c_coeffs;
-    std::vector<double> s_coeffs;
-    exter_params exter_params;
+    Eigen::MatrixXd c_coeffs;
+    Eigen::MatrixXd s_coeffs;
+    ExterParams exter_params;
 };
 
-struct noise_params {
+struct NoiseParams {
     int warm;
     int count;
 };
 
-struct matrix_params {
+struct MatrixParams {
     double pix_x;
     double pix_y;
     double pix_Nx;
     double pix_Ny;
     double matr_x;
     double matr_y;
-    noise_params noise_params;
+    NoiseParams noise_params;
     double pix_capacity;
     double quant_efficiency;
 };

@@ -5,22 +5,24 @@
 #ifndef POLYGON_SCOPE_HPP
 #define POLYGON_SCOPE_HPP
 
+#include <utility>
+
 #include "../Utility/Structs.hpp"
 
 namespace Polygon {
 
 class Scope {
     Eigen::Vector3d lambdas = {700., 546.1, 435.8};
-    optic_params optic_params;
-    matrix_params matrix_params;
+    OpticParams optic_params_;
+    MatrixParams matrix_params_;
     Eigen::Matrix<double, 1, 1> psf_matrix;
 
 public:
-    Scope(const Eigen::Vector3d &lambdas, const struct optic_params &optic_params,
-          const struct matrix_params &matrix_params) : lambdas(lambdas),
-                                                       optic_params(optic_params),
-                                                       matrix_params(matrix_params) {
-        psf_matrix.resize(matrix_params.pix_Nx, matrix_params.pix_Ny);
+    Scope(Eigen::Vector3d lambdas, struct OpticParams optic_params,
+          const struct MatrixParams &matrix_params) : lambdas(std::move(lambdas)),
+                                                      optic_params_(std::move(optic_params)),
+                                                      matrix_params_(matrix_params) {
+        psf_matrix.resize(matrix_params_.pix_Nx, matrix_params_.pix_Ny);
     }
 };
 

@@ -13,9 +13,9 @@ protected:
 public:
     BaseTransmissionFunction() = default;
 
-    BaseTransmissionFunction(const double &trans_coeff) : trans_coeff(trans_coeff) {}
+    explicit BaseTransmissionFunction(const double &trans_coeff) : trans_coeff(trans_coeff) {}
 
-    virtual double calc_trans_func(const double &x, const double &y) const = 0;
+    [[nodiscard]] virtual double calc_trans_func(const double &x, const double &y) const = 0;
 };
 
 } // namespace Polygon
