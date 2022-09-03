@@ -37,13 +37,17 @@ public:
 
     [[nodiscard]] virtual std::vector<SatState>
     check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                    const std::vector<SatState> &sat_state) const = 0;
+                    std::vector<SatState> &sat_state, const Eigen::Vector3d &sun_pos) = 0;
 
     [[nodiscard]] virtual std::vector<Star>
     view_star_array(const Eigen::Vector3d &scope_dir) const = 0;
 
     [[nodiscard]] virtual std::vector<int>
     view_area_nums(const Eigen::Vector3d &scope_dir) const = 0;
+
+    [[nodiscard]] double get_cone_angle() const {
+        return cone_angle;
+    }
 }; // namespace Polygon
 }
 

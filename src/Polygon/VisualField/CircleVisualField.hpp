@@ -22,7 +22,7 @@ public:
                    const Eigen::Vector3d &sat_pos) const override;
 
     [[nodiscard]] std::vector<SatState> check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                                                         const std::vector<SatState> &sat_state) const override;
+                                                        std::vector<SatState> &sat_state, const Eigen::Vector3d &sun_pos) override;
 
     [[nodiscard]] std::vector<int> view_area_nums(const Eigen::Vector3d &scope_dir) const override;
 

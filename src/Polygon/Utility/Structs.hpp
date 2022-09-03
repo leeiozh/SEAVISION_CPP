@@ -10,11 +10,17 @@
 
 namespace Polygon {
 
+struct ScopeState {
+    Eigen::Vector3d position;
+    Eigen::Vector3d direction;
+};
+
 struct SatState {
     int number;
     double radius;
-    Eigen::Vector3d position;
-    Eigen::Vector3d velocity;
+    Eigen::Vector3d position3d;
+    Eigen::Vector2d position2d = Eigen::Vector2d::Zero();
+    double bright = 0.;
 };
 
 struct Star {
@@ -24,6 +30,8 @@ struct Star {
     double ascension;
     double declination;
     double magnitude;
+    double bright;
+    Eigen::Vector2d position2d;
 };
 
 struct ExterParams {
@@ -57,7 +65,6 @@ struct MatrixParams {
     double matr_y;
     NoiseParams noise_params;
     double pix_capacity;
-    double quant_efficiency;
 };
 
 

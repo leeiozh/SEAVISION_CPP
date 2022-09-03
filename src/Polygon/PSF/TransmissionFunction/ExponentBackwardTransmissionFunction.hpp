@@ -17,7 +17,7 @@ public:
     explicit ExponentBackwardTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
 
     [[nodiscard]] double calc_trans_func(const double &x, const double &y) const override {
-        return std::exp(-trans_coeff * (x * x + y * y));
+        return std::exp((trans_coeff - 1) * (x * x + y * y));
     }
 
 };

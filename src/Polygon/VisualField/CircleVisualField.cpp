@@ -2,6 +2,7 @@
 // Created by leeiozh on 05.08.22.
 //
 #include "../Utility/Consts.hpp"
+#include "../Utility/Functions.hpp"
 #include <fstream>
 #include <iostream>
 #include "CircleVisualField.hpp"
@@ -16,10 +17,18 @@ bool CircleVisualField::check_sat(const Eigen::Vector3d &scope_dir, const Eigen:
 
 std::vector<SatState>
 CircleVisualField::check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
-                                   const std::vector<SatState> &sat_state) const {
+                                   std::vector<SatState> &sat_state, const Eigen::Vector3d &sun_pos) {
     std::vector<SatState> res(0);
     for (auto &sat: sat_state) {
-        if (check_sat(scope_dir, scope_pos, sat.position)) {
+        if (check_sat(scope_dir, scope_pos, sat.position3d)) {
+            sat.position2d.x() = std::asin(sat.position3d.normalized().dot(Eigen::Vector3d{1, 0, 0}));
+            sat.position2d.y() = std::asin(sat.position3d.normalized().dot(Eigen::Vector3d{0, 1, 0}));
+            sat.position2d /= cone_angle;
+            double xi = std::acos(
+                    (sat.position3d - sun_pos).dot(scope_pos - sun_pos) / (sat.position3d - sun_pos).norm() /
+                    (scope_pos - sun_pos).norm());
+            sat.bright = STAR_BRIGHT * sat.radius * sat.radius / (scope_pos - sat.position3d).norm() /
+                         (scope_pos - sat.position3d).norm() * calc_jp(xi);
             res.push_back(sat);
         }
     }
@@ -50,15 +59,16 @@ CircleVisualField::view_area_nums(const Eigen::Vector3d &scope_dir) const {
         Eigen::Vector4d min_max = Eigen::Vector4d::Zero();
 
         for (int i = 0; i < 4; i++) {
-            min_max[i] = rad * std::stod(line.substr(15 + 7 * i, 6).c_str());
+            min_max[i] = rad * std::stod(line.substr(15 + 7 * i, 6));
         }
 
         counter_ex++;
         double min = M_PI;
 
         for (int i = 0; i < 4; ++i) {
-            Eigen::Vector3d g_vec = {std::cos(2 + i / 2) * std::cos(i % 2), std::cos(2 + i / 2) * std::sin(i % 2),
-                                     std::sin(2 + i / 2)};
+            Eigen::Vector3d g_vec = {std::cos(min_max[2 + i / 2]) * std::cos(min_max[i % 2]),
+                                     std::cos(min_max[2 + i / 2]) * std::sin(min_max[i % 2]),
+                                     std::sin(min_max[2 + i / 2])};
             min = std::min(min, g_vec.dot(scope_norm));
         }
 
@@ -140,7 +150,10 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                     double mag = std::stod(line.substr(83, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
-                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag};
+                    Eigen::Vector2d position2d = {g_vec.dot(Eigen::Vector3d{1, 0, 0}),
+                                                  g_vec.dot(Eigen::Vector3d{0, 1, 0})};
+                    double bright = STAR_BRIGHT * std::pow(10, mag - STAR_MAG);
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, position2d};
                     counter_ex++;
                 }
             } catch (...) {

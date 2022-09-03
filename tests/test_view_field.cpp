@@ -11,12 +11,13 @@ TEST(VIEW_SAT, VIEW_SAT_SIMPLE) {
 
     Eigen::Vector3d scope_dir = {1, 0.001, 0};
     Eigen::Vector3d scope_pos = {6370e3, 0, 0};
+    Eigen::Vector3d sun_pos = {0, 1.5e11, 0.};
 
     std::vector<Polygon::SatState> sat_state(2);
-    sat_state[0] = Polygon::SatState{10, 0, Eigen::Vector3d(6.8e6, 0, 0), Eigen::Vector3d::Zero()};
-    sat_state[1] = Polygon::SatState{11, 0, Eigen::Vector3d(0, 6.8e6, 0), Eigen::Vector3d::Zero()};
+    sat_state[0] = Polygon::SatState{10, 0, Eigen::Vector3d(6.8e6, 0, 0)};
+    sat_state[1] = Polygon::SatState{11, 0, Eigen::Vector3d(0, 6.8e6, 0)};
 
-    auto res = field.check_sat_array(scope_dir, scope_pos, sat_state);
+    auto res = field.check_sat_array(scope_dir, scope_pos, sat_state, sun_pos);
 
     std::cout << res.size() << std::endl;
     for (auto &s: res) {
