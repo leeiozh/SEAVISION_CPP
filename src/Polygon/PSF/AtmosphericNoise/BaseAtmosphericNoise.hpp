@@ -11,9 +11,9 @@ class BaseAtmosphericNoise {
 protected:
     double hwrw = 0;
 public:
-    explicit BaseAtmosphericNoise(const double &hwrw) : hwrw(hwrw) {};
+    inline explicit BaseAtmosphericNoise(const double &hwrw) : hwrw(hwrw) {};
 
-    [[nodiscard]] virtual double calc_atm_noise(const double &x, const double &y) const = 0;
+    [[nodiscard]] inline virtual double calc_atm_noise(const double &x, const double &y) const = 0;
 };
 
 }

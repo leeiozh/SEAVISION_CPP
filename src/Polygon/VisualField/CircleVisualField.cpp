@@ -1,34 +1,33 @@
 //
 // Created by leeiozh on 05.08.22.
 //
-#include "../Utility/Consts.hpp"
-#include "../Utility/Functions.hpp"
-#include <fstream>
+
 #include <iostream>
 #include "CircleVisualField.hpp"
 
 namespace Polygon {
 
-bool CircleVisualField::check_sat(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
+bool CircleVisualField::check_sat(const ScopeState &scope_state,
                                   const Eigen::Vector3d &sat_pos) const {
-    Eigen::Vector3d g_vec = sat_pos - scope_pos;
-    return std::acos(g_vec.dot(scope_dir) / g_vec.norm() / scope_dir.norm()) <= cone_angle;
+    Eigen::Vector3d g_vec = sat_pos - scope_state.position;
+    return std::acos(g_vec.dot(scope_state.direction) / g_vec.norm() / scope_state.direction.norm()) <= cone_angle;
 }
 
 std::vector<SatState>
-CircleVisualField::check_sat_array(const Eigen::Vector3d &scope_dir, const Eigen::Vector3d &scope_pos,
+CircleVisualField::check_sat_array(const ScopeState &scope_state,
                                    std::vector<SatState> &sat_state, const Eigen::Vector3d &sun_pos) {
     std::vector<SatState> res(0);
     for (auto &sat: sat_state) {
-        if (check_sat(scope_dir, scope_pos, sat.position3d)) {
-            sat.position2d.x() = std::asin(sat.position3d.normalized().dot(Eigen::Vector3d{1, 0, 0}));
-            sat.position2d.y() = std::asin(sat.position3d.normalized().dot(Eigen::Vector3d{0, 1, 0}));
-            sat.position2d /= cone_angle;
+        if (check_sat(scope_state, sat.position3d)) {
+            Eigen::Vector3d diff = sat.position3d - scope_state.direction;
+            Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
+            sat.position2d = {proj.x(), proj.y()};
+
             double xi = std::acos(
-                    (sat.position3d - sun_pos).dot(scope_pos - sun_pos) / (sat.position3d - sun_pos).norm() /
-                    (scope_pos - sun_pos).norm());
-            sat.bright = STAR_BRIGHT * sat.radius * sat.radius / (scope_pos - sat.position3d).norm() /
-                         (scope_pos - sat.position3d).norm() * calc_jp(xi);
+                    (sat.position3d - sun_pos).dot(scope_state.position - sun_pos) / (sat.position3d - sun_pos).norm() /
+                    (scope_state.position - sun_pos).norm());
+            double dist = (scope_state.position - sat.position3d).norm();
+            sat.bright = SUN_TSI * sat.radius * sat.radius / dist / dist * calc_jp(xi);
             res.push_back(sat);
         }
     }
@@ -63,17 +62,16 @@ CircleVisualField::view_area_nums(const Eigen::Vector3d &scope_dir) const {
         }
 
         counter_ex++;
-        double min = M_PI;
 
         for (int i = 0; i < 4; ++i) {
             Eigen::Vector3d g_vec = {std::cos(min_max[2 + i / 2]) * std::cos(min_max[i % 2]),
                                      std::cos(min_max[2 + i / 2]) * std::sin(min_max[i % 2]),
                                      std::sin(min_max[2 + i / 2])};
-            min = std::min(min, g_vec.dot(scope_norm));
-        }
 
-        if (min < cone_angle) {
-            res.push_back(counter_ex);
+            if (std::acos(g_vec.dot(scope_norm)) < cone_angle) {
+                res.push_back(counter_ex);
+                break;
+            }
         }
     }
 
@@ -122,11 +120,17 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
 
                 Eigen::Vector3d g_vec = {std::cos(dec) * std::cos(asc), std::cos(dec) * std::sin(asc), std::sin(dec)};
 
-                if (std::acos(g_vec.dot(scope_dir) / scope_dir.norm()) < cone_angle) {
+                if (std::acos(g_vec.dot(scope_dir.normalized())) < cone_angle) {
                     double mag = std::stod(line.substr(110, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
-                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag};
+
+                    Eigen::Vector3d diff = g_vec - scope_dir;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_dir.normalized()) * scope_dir;
+                    Eigen::Vector2d pos_2d = {scope_dir.cross(Eigen::Vector3d(0, 0, 1)).dot(proj), proj.z()};
+
+                    double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};
                     counter_ex++;
                 }
             } catch (...) {
@@ -136,6 +140,7 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
     }
 
     while (std::getline(file_sup, line)) {
+
         auto area_num = std::stoi(line.substr(0, 4));
 
         if (std::find(areas.begin(), areas.end(), area_num) != areas.end()) {
@@ -146,14 +151,17 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
 
                 Eigen::Vector3d g_vec = {std::cos(dec) * std::cos(asc), std::cos(dec) * std::sin(asc), std::sin(dec)};
 
-                if (std::acos(g_vec.dot(scope_dir) / scope_dir.norm()) < cone_angle) {
+                if (std::acos(g_vec.dot(scope_dir.normalized())) < cone_angle) {
                     double mag = std::stod(line.substr(83, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
-                    Eigen::Vector2d position2d = {g_vec.dot(Eigen::Vector3d{1, 0, 0}),
-                                                  g_vec.dot(Eigen::Vector3d{0, 1, 0})};
-                    double bright = STAR_BRIGHT * std::pow(10, mag - STAR_MAG);
-                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, position2d};
+
+                    Eigen::Vector3d diff = g_vec - scope_dir;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_dir.normalized()) * scope_dir;
+                    Eigen::Vector2d pos_2d = {scope_dir.cross(Eigen::Vector3d(0, 0, 1)).dot(proj), proj.z()};
+
+                    double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};
                     counter_ex++;
                 }
             } catch (...) {

@@ -9,18 +9,18 @@
 
 namespace Polygon {
 
-const int COLOR_NUMBER = 3;
+const int COLOR_NUMBER = 1;
 
 constexpr double rad = M_PI / 180;
 constexpr double deg = 180 / M_PI;
 
-const double LIGHT_SPEED = 299792458;
-const double PLUNK_CONSTANT_34 = 6.62607015;
+constexpr double PLUNK_CONSTANT_LIGHT_SPEED = 6.62607015 * 2.99792458;
 
 const double K_ATMOSPHERE = 0.2;
 
-double STAR_BRIGHT = 1.;
-double STAR_MAG = 0.;
+const double SUN_TSI = 1361;
+const double STAR_BRIGHT = 0.032293;
+const double STAR_MAG = 0.03;
 
 }
 

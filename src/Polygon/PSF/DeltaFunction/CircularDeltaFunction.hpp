@@ -12,7 +12,7 @@ namespace Polygon {
 class CircularDeltaFunction : public BaseDeltaFunction {
 
 public:
-    [[nodiscard]] bool calc_delta_func(const double &x, const double &y) const override {
+    [[nodiscard]] inline bool calc_delta_func(const double &x, const double &y) const override {
         return ((x * x + y * y) <= 1);
     };
 };

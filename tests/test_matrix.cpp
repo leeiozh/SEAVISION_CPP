@@ -14,12 +14,12 @@ TEST(TEST_MATRIX, MATRIX_SIMPLE) {
     const int SIZE_Y = 200;
 
     Polygon::NoiseParams noiseParams{5, 5};
-    Polygon::MatrixParams matrixParams{0.1, 0.1, SIZE_X, SIZE_Y, 2, 2, noiseParams, 330};
+    Polygon::MatrixParams matrixParams{0.1, 0.1, 2, 2, noiseParams, 330};
 
     std::array<Eigen::MatrixXd, COLOR_NUMBER> pics;
     pics[0] = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
 
-    for (int i = 0; i < SIZE_X; ++i){
+    for (int i = 0; i < SIZE_X; ++i) {
         pics[0](i, i) = 1e-6;
     }
 
@@ -29,7 +29,7 @@ TEST(TEST_MATRIX, MATRIX_SIMPLE) {
     std::array<double, 3> lengths = {700., 546.1, 435.8};
     std::array<double, 3> quant_eff = {0.9, 0.99, 0.8};
 
-    Matrix<SIZE_X, SIZE_Y> matrix(matrixParams, pics, lengths, quant_eff);
+    Matrix<SIZE_X, SIZE_Y> matrix(matrixParams, lengths, quant_eff);
 
     matrix.to_electrons_with_noise(1e-6);
 

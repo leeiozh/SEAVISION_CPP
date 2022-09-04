@@ -13,7 +13,7 @@ namespace Polygon {
 class SquareDeltaFunction : public BaseDeltaFunction {
 
 public:
-    [[nodiscard]] bool calc_delta_func(const double &x, const double &y) const override {
+    [[nodiscard]] inline bool calc_delta_func(const double &x, const double &y) const override {
         return ((std::abs(x) <= 1) && (std::abs(y) <= 1));
     };
 };

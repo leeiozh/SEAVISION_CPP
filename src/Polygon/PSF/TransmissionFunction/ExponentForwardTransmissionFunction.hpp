@@ -14,10 +14,10 @@ class ExponentForwardTransmissionFunction : public BaseTransmissionFunction {
 
 public:
 
-    explicit ExponentForwardTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
+    inline explicit ExponentForwardTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
 
-    [[nodiscard]] double calc_trans_func(const double &x, const double &y) const override {
-        return std::exp((1-trans_coeff) * (x * x + y * y)) * trans_coeff;
+    [[nodiscard]] inline double calc_trans_func(const double &x, const double &y) const override {
+        return std::sqrt(std::exp((1-trans_coeff) * (x * x + y * y)) * trans_coeff);
     }
 
 };

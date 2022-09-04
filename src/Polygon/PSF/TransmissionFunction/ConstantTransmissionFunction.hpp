@@ -13,10 +13,10 @@ class ConstantTransmissionFunction : public BaseTransmissionFunction {
 
 public:
 
-    explicit ConstantTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
+    inline explicit ConstantTransmissionFunction(const double &trans_coeff) : BaseTransmissionFunction(trans_coeff) {}
 
-    [[nodiscard]] double calc_trans_func(const double &x, const double &y) const override {
-        return trans_coeff;
+    [[nodiscard]] inline double calc_trans_func(const double &x, const double &y) const override {
+        return std::sqrt(trans_coeff);
     }
 
 };

@@ -11,11 +11,11 @@ class BaseTransmissionFunction {
 protected:
     double trans_coeff = 1;
 public:
-    BaseTransmissionFunction() = default;
+    inline BaseTransmissionFunction() = default;
 
-    explicit BaseTransmissionFunction(const double &trans_coeff) : trans_coeff(trans_coeff) {}
+    inline explicit BaseTransmissionFunction(const double &trans_coeff) : trans_coeff(trans_coeff) {}
 
-    [[nodiscard]] virtual double calc_trans_func(const double &x, const double &y) const = 0;
+    [[nodiscard]] inline virtual double calc_trans_func(const double &x, const double &y) const = 0;
 };
 
 } // namespace Polygon

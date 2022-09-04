@@ -59,8 +59,6 @@ struct NoiseParams {
 struct MatrixParams {
     double pix_x;
     double pix_y;
-    double pix_Nx;
-    double pix_Ny;
     double matr_x;
     double matr_y;
     NoiseParams noise_params;

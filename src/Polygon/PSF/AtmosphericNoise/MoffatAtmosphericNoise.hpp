@@ -14,12 +14,9 @@ class MoffatAtmosphericNoise : public BaseAtmosphericNoise {
 protected:
     double beta;
 public:
-    MoffatAtmosphericNoise(const double &hwrw, const double &beta) : BaseAtmosphericNoise(hwrw), beta(beta) {};
+    inline MoffatAtmosphericNoise(const double &hwrw, const double &beta) : BaseAtmosphericNoise(hwrw), beta(beta) {};
 
-    [[nodiscard]] double calc_atm_noise(const double &x, const double &y) const override {
-        double r2 = x * x + y * y;
-        return 2 * (beta - 1) / hwrw * std::pow(1 + r2 / hwrw / hwrw, beta);
-    }
+    [[nodiscard]] double calc_atm_noise(const double &x, const double &y) const override;
 };
 
 }
