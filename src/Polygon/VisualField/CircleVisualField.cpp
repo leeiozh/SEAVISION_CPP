@@ -125,9 +125,10 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
 
-                    Eigen::Vector3d diff = g_vec - scope_dir;
-                    Eigen::Vector3d proj = diff - diff.dot(scope_dir.normalized()) * scope_dir;
-                    Eigen::Vector2d pos_2d = {scope_dir.cross(Eigen::Vector3d(0, 0, 1)).dot(proj), proj.z()};
+                    double scope_norm = scope_dir.norm();
+                    Eigen::Vector3d proj = g_vec * (scope_norm * scope_norm) / (g_vec.dot(scope_dir)) - scope_dir;
+                    Eigen::Vector2d pos_2d = {(scope_dir.cross(Eigen::Vector3d(0, 0, 1)).normalized()).dot(proj), proj.z()};
+                    pos_2d /= (scope_dir.norm() * std::tan(cone_angle));
 
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
                     res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};
@@ -156,9 +157,10 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
 
-                    Eigen::Vector3d diff = g_vec - scope_dir;
-                    Eigen::Vector3d proj = diff - diff.dot(scope_dir.normalized()) * scope_dir;
-                    Eigen::Vector2d pos_2d = {scope_dir.cross(Eigen::Vector3d(0, 0, 1)).dot(proj), proj.z()};
+                    double scope_norm = scope_dir.norm();
+                    Eigen::Vector3d proj = g_vec * (scope_norm * scope_norm) / (g_vec.dot(scope_dir)) - scope_dir;
+                    Eigen::Vector2d pos_2d = {(scope_dir.cross(Eigen::Vector3d(0, 0, 1)).normalized()).dot(proj), proj.z()};
+                    pos_2d /= (scope_dir.norm() * std::tan(cone_angle));
 
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
                     res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};

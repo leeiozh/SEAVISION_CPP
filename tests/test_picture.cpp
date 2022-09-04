@@ -8,19 +8,21 @@
 #include "../src/Polygon/Picture/Picture.hpp"
 #include "../src/Polygon/VisualField/CircleVisualField.hpp"
 #include "../src/Polygon/PSF/DeltaFunction/CircularDeltaFunction.hpp"
+#include "../src/Polygon/PSF/DeltaFunction/SquareDeltaFunction.hpp"
 #include "../src/Polygon/PSF/TransmissionFunction/ConstantTransmissionFunction.hpp"
+#include "../src/Polygon/PSF/AtmosphericNoise/MoffatAtmosphericNoise.hpp"
 
 namespace Polygon {
 
 TEST(TEST_PICTURE, PICTURE_SIMPLE) {
 
-    const int SIZE_X = 1001;
-    const int SIZE_Y = 1001;
+    const int SIZE_X = 3000;
+    const int SIZE_Y = 3000;
 
-    Polygon::NoiseParams noiseParams{0, 0};
+    Polygon::NoiseParams noiseParams{3, 3};
     const Polygon::MatrixParams matrixParams{1e-5, 1e-5, 1e-5 * SIZE_X, 1e-5 * SIZE_Y, noiseParams, 1e5};
 
-    std::shared_ptr<Polygon::BaseVisualField> field = std::make_shared<Polygon::CircleVisualField>(30 * rad,
+    std::shared_ptr<Polygon::BaseVisualField> field = std::make_shared<Polygon::CircleVisualField>(10 * rad,
                                                                                                    Eigen::Vector2d(
                                                                                                            matrixParams.matr_x,
                                                                                                            matrixParams.matr_y),
@@ -36,16 +38,18 @@ TEST(TEST_PICTURE, PICTURE_SIMPLE) {
     sat_state[0] = sat;
 
     Eigen::MatrixXd c_coeffs(2, 2);
-    c_coeffs << 0, 0, 0, 0;
+    c_coeffs << 0., 0., 0, 0;
     Eigen::MatrixXd s_coeffs(2, 2);
-    s_coeffs << 0, 0, 0, 0;
+    s_coeffs << 0., 0., 0, 0;
 
     auto aber_func_ptr = std::make_shared<AberrationFunction>(c_coeffs, s_coeffs);
     auto trans_func_ptr = std::make_shared<ConstantTransmissionFunction>(1.);
     auto delta_func_ptr = std::make_shared<CircularDeltaFunction>();
 
-    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr);
-    SkyLight<SIZE_X, SIZE_Y> sky(1e-6);
+    auto atm_noise = std::make_shared<MoffatAtmosphericNoise>(5e-1, 0.5);
+
+    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr, atm_noise);
+    SkyLight<SIZE_X, SIZE_Y> sky(1e-10);
 
     std::array<double, COLOR_NUMBER> lengths = {700.}; //, 546.1, 435.8};
     std::array<double, COLOR_NUMBER> quant_eff = {1.}; //, 1., 1.};
@@ -56,7 +60,7 @@ TEST(TEST_PICTURE, PICTURE_SIMPLE) {
 
     auto res = picture.calc_pictures(scope_state, sat_state, sun_pos, 1);
 
-    std::cout << res[0](150,150) << std::endl;
+    std::cout << res[0](150, 150) << std::endl;
 
     std::ofstream out("/home/leeiozh/mmcp/calculation_results/Picture.csv");
 

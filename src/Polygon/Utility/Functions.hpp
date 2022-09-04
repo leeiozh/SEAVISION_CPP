@@ -24,12 +24,16 @@ inline double normal_random(const NoiseParams &noiseParams) {
 
 template <int SIZE_X, int SIZE_Y>
 
-inline fftw_complex *convert_eigen_to_fftw(const Eigen::MatrixXd &matrix) {
+inline fftw_complex *convert_eigen_to_fftw(const Eigen::MatrixXd &matrix, const bool &norm = false) {
     fftw_complex *res;
     res = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
+
+    double max = 1.;
+    if (norm) max = matrix.maxCoeff();
+
     for (int i = 0; i < SIZE_X; ++i) {
         for (int j = 0; j < SIZE_Y; ++j) {
-            res[SIZE_X * i + j][0] = matrix(i, j);
+            res[SIZE_X * i + j][0] = matrix(i, j) / max;
             res[SIZE_X * i + j][1] = 0.;
         }
     }
@@ -38,16 +42,19 @@ inline fftw_complex *convert_eigen_to_fftw(const Eigen::MatrixXd &matrix) {
 
 template <int SIZE_X, int SIZE_Y>
 
-inline Eigen::MatrixXd convert_fftw_to_eigen(const fftw_complex *matrix) {
+inline Eigen::MatrixXd convert_fftw_to_eigen(const fftw_complex *matrix, const bool &norm = false) {
     Eigen::MatrixXd res = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
+
     for (int i = 0; i < SIZE_X; ++i) {
         for (int j = 0; j < SIZE_Y; ++j) {
-            double real = matrix[i * SIZE_X + j][0];
-            double imag = matrix[i * SIZE_X + j][1];
-            res(i, j) = std::sqrt(real * real + imag * imag);
+            res(i, j) = matrix[i * SIZE_X + j][0];
         }
     }
-    return res;
+
+    double max = 1.;
+    if (norm) max = res.maxCoeff();
+
+    return res / max;
 }
 
 }

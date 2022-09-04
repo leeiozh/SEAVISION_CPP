@@ -7,6 +7,7 @@
 
 #include "../Matrix/Matrix.hpp"
 #include "../PSF/PSF.hpp"
+#include "../PSF/AtmosphericNoise/BaseAtmosphericNoise.hpp"
 #include "SkyLight.hpp"
 
 namespace Polygon {
@@ -80,7 +81,7 @@ public:
         fftw_destroy_plan(p3);
         fftw_cleanup();
 
-        return convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res);
+        return convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res) / 1e17;
     }
 
     inline std::array<Eigen::MatrixXi, COLOR_NUMBER>
@@ -95,15 +96,14 @@ public:
             Eigen::MatrixXd pic = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
 
             for (const auto &star: star_array) {
-                bilinear_interpol(res, star.position2d, star.bright);
+                bilinear_interpol(pic, star.position2d, star.bright);
             }
 
             for (const auto &sat: sat_array) {
-                bilinear_interpol(res, sat.position2d, sat.bright);
+                bilinear_interpol(pic, sat.position2d, sat.bright);
 
             }
             pic += sky_light.calc_background(scope_state, field);
-
             res[i] = calc_roll(pic, psf.get_matrix());
         }
 

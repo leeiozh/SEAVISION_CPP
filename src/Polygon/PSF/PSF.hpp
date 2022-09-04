@@ -8,6 +8,7 @@
 #include "AberrationFunction/AberrationFunction.hpp"
 #include "DeltaFunction/BaseDeltaFunction.hpp"
 #include "TransmissionFunction/BaseTransmissionFunction.hpp"
+#include "AtmosphericNoise/BaseAtmosphericNoise.hpp"
 #include <fftw3.h>
 
 namespace Polygon {
@@ -23,7 +24,8 @@ public:
 
     inline PSF(const std::shared_ptr<AberrationFunction> &aber_func,
                const std::shared_ptr<BaseDeltaFunction> &delta_func,
-               const std::shared_ptr<BaseTransmissionFunction> &trans_func) {
+               const std::shared_ptr<BaseTransmissionFunction> &trans_func,
+               const std::shared_ptr<BaseAtmosphericNoise> &atm_noise) {
 
         fftw_complex *comp_matrix;
         comp_matrix = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
@@ -39,13 +41,13 @@ public:
                 std::complex<double> number = del * trans * static_cast<std::complex<double>>(std::exp(
                         -2 * M_PI * aber * std::complex<double>(0, 1)));
 
+                number += atm_noise->calc_atm_noise(x, y);
+
                 comp_matrix[SIZE_X * i + j][0] = number.real();
                 comp_matrix[SIZE_X * i + j][1] = number.imag();
 
             }
         }
-
-        std::cout << comp_matrix[110][0] << " " << comp_matrix[110][1] << std::endl;
 
         fftw_complex *fft_matrix;
         fft_matrix = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
@@ -66,7 +68,7 @@ public:
                 max_element = std::max(max_element, matrix(i, j));
             }
         }
-        matrix /= max_element;
+//        matrix /= max_element;
     };
 
     inline double calc_psf_at_point(const double &x, const double &y) {
