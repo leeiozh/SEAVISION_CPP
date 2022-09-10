@@ -7,7 +7,9 @@
 namespace Polygon {
 
 double DiegoAtmosphericNoise::calc_atm_noise(const double &x, const double &y) const {
-    double r = std::sqrt(x * x + y * y);
+
+    double r = std::sqrt(x * x + y * y); // расстояние до точечного источника в предметной плоскости
+
     return 1 / (1 + std::pow((r / hwrw), p_coeff * (1 + r / pr_coeff)));
 }
 

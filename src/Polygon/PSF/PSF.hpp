@@ -16,12 +16,22 @@ namespace Polygon {
 template <int SIZE_X, int SIZE_Y>
 
 class PSF {
+    /**
+     * класс функции размытия точки (ФРТ)
+     */
 protected:
 
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
+    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y); // матрица ФРТ
 
 public:
 
+    /**
+     * конструктор ФРТ
+     * @param aber_func функция аберрации
+     * @param delta_func функция диафрагмирования
+     * @param trans_func функция пропускания
+     * @param atm_noise
+     */
     inline PSF(const std::shared_ptr<AberrationFunction> &aber_func,
                const std::shared_ptr<BaseDeltaFunction> &delta_func,
                const std::shared_ptr<BaseTransmissionFunction> &trans_func,
@@ -30,6 +40,7 @@ public:
         fftw_complex *comp_matrix;
         comp_matrix = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
+        // заполнение матрицы комплексными значениями зрачковой функции
         for (int i = 0; i < SIZE_X; ++i) {
             double x = 2 * static_cast<double>(i) / (SIZE_X - 1) - 1;
             for (int j = 0; j < SIZE_Y; ++j) {
@@ -52,6 +63,7 @@ public:
         fftw_complex *fft_matrix;
         fft_matrix = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
+        // проведение обратного преобразования Фурье от зрачковой функции
         fftw_plan p = fftw_plan_dft_2d(SIZE_X, SIZE_Y, comp_matrix, fft_matrix, FFTW_BACKWARD, FFTW_ESTIMATE);
 
         fftw_execute(p);
@@ -60,6 +72,7 @@ public:
 
         double max_element = 0.;
 
+        // вычисление квадрата модуля прообраза
         for (int i = 0; i < SIZE_X; ++i) {
             for (int j = 0; j < SIZE_Y; ++j) {
                 double real = fft_matrix[i * SIZE_X + j][0];
@@ -71,10 +84,12 @@ public:
 //        matrix /= max_element;
     };
 
+    // вычисление ФРТ в точке
     inline double calc_psf_at_point(const double &x, const double &y) {
         return matrix(static_cast<int>((x + 1) * 0.5 * (SIZE_X - 1)), static_cast<int>((y + 1) * 0.5 * (SIZE_Y - 1)));
     }
 
+    // геттер полученной матрицы
     inline Eigen::MatrixXd get_matrix() {
         return matrix;
     }

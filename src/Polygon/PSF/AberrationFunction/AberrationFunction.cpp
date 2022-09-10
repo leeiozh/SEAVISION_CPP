@@ -73,11 +73,13 @@ double AberrationFunction::calc_aberration_func(const double &x, const double &y
     Eigen::VectorXd x_pow = Eigen::VectorXd::Ones(c_coeffs.rows());
     Eigen::VectorXd y_pow = Eigen::VectorXd::Ones(c_coeffs.rows());
 
+    // подсчет степеней х и у
     for (int i = 1; i < c_coeffs.rows(); ++i) {
         x_pow[i] = x_pow[i - 1] * x;
         y_pow[i] = y_pow[i - 1] * y;
     }
 
+    // суммирование гармоник разложения
     for (int n = 0; n < c_coeffs.rows(); ++n) {
         for (int m = 0; m < c_coeffs.cols(); ++m) {
             auto pair = calc_zernike_polynom(x_pow, y_pow, n, m);

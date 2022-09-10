@@ -9,18 +9,19 @@
 
 namespace Polygon {
 
-const int COLOR_NUMBER = 1;
+const int COLOR_NUMBER = 1; // число моделируемых цветов
 
-constexpr double rad = M_PI / 180;
-constexpr double deg = 180 / M_PI;
+constexpr double rad = M_PI / 180; // один радиан
+constexpr double deg = 180 / M_PI; // один градус
 
+// константа в формуле перевода интенсивности в пикселы
 constexpr double PLUNK_CONSTANT_LIGHT_SPEED = 6.62607015 * 2.99792458;
 
-const double K_ATMOSPHERE = 0.2;
+const double K_ATMOSPHERE = 0.2; // коэффициент поглощения в атмосферы
 
-const double SUN_TSI = 1361;
-const double STAR_BRIGHT = 0.032293;
-const double STAR_MAG = 0.03;
+const double SUN_TSI = 1361; // солнечная постоянная
+const double STAR_BRIGHT = 0.032293; // яркость опорной звезды (Вега)
+const double STAR_MAG = 0.03; // видимая звездная величина опорной звезды (Вега)
 
 }
 

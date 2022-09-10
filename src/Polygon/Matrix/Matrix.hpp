@@ -14,19 +14,33 @@ namespace Polygon {
 template <int SIZE_X, int SIZE_Y>
 
 class Matrix {
+    /**
+     * класс матрицы
+     */
 protected:
-    MatrixParams params;
-    std::array<double, COLOR_NUMBER> light_length;
-    std::array<double, COLOR_NUMBER> quant_effiency;
-    std::array<Eigen::MatrixXd, COLOR_NUMBER> pictures;
+    MatrixParams params; // параметры матрицы
+    std::array<double, COLOR_NUMBER> light_length; // массив используемых длин волн
+    std::array<double, COLOR_NUMBER> quant_effiency; // массив коэффициентов квантовой эффективности на используемых длинах волн
+    std::array<Eigen::MatrixXd, COLOR_NUMBER> pictures; // полученные изображения
 public:
 
+    /**
+     * конструктор матрицы
+     * @param matrixParams параметры матрицы
+     * @param light_length массив используемых длин волн
+     * @param quant_effiency массив коэффициентов квантовой эффективности на используемых длинах волн
+     */
     inline Matrix(const MatrixParams &matrixParams,
-           const std::array<double, COLOR_NUMBER> &light_length,
-           const std::array<double, COLOR_NUMBER> &quant_effiency) : params(matrixParams),
-                                                                     light_length(light_length),
-                                                                     quant_effiency(quant_effiency) {}
+                  const std::array<double, COLOR_NUMBER> &light_length,
+                  const std::array<double, COLOR_NUMBER> &quant_effiency) : params(matrixParams),
+                                                                            light_length(light_length),
+                                                                            quant_effiency(quant_effiency) {}
 
+    /**
+     * конвертация интенсивности в количество фотоэлектрон без учета шума
+     * @param time_expose время экспозиции
+     * @return массив изображений
+     */
     inline std::array<Eigen::MatrixXi, COLOR_NUMBER> to_electrons(const double &time_expose) {
         std::array<Eigen::MatrixXi, COLOR_NUMBER> res;
         for (int pic = 0; pic < COLOR_NUMBER; ++pic) {
@@ -34,7 +48,7 @@ public:
             for (int i = 0; i < SIZE_X; ++i) {
                 for (int j = 0; j < SIZE_Y; ++j) {
                     double elec = pictures[pic](i, j) * time_expose * params.pix_x * params.pix_y * light_length[pic] /
-                            PLUNK_CONSTANT_LIGHT_SPEED * 1e17;
+                                  PLUNK_CONSTANT_LIGHT_SPEED * 1e17;
                     elec *= quant_effiency[pic];
                     elec = std::min(elec, params.pix_capacity);
                     elec = std::max(elec, 0.);
@@ -45,6 +59,11 @@ public:
         return res;
     }
 
+    /**
+     * конвертация интенсивности в количество фотоэлектрон с учетом шума
+     * @param time_expose время экспозиции
+     * @return массив изображений
+     */
     inline std::array<Eigen::MatrixXi, COLOR_NUMBER> to_electrons_with_noise(const double &time_expose) {
 
         std::array<Eigen::MatrixXi, COLOR_NUMBER> res;
@@ -68,14 +87,17 @@ public:
         return res;
     }
 
+    // перегрузка оператора вызова
     inline double operator()(int i, int j, int k) {
         return pictures[i](j, k);
     }
 
+    // геттер параметров матрицы
     inline MatrixParams get_params() {
         return params;
     }
 
+    // сеттер матриц изображений
     inline void set_pictures(const std::array<Eigen::MatrixXd, COLOR_NUMBER> &pics) {
         pictures = pics;
     }
