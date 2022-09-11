@@ -108,7 +108,7 @@ public:
         fftw_destroy_plan(p3);
         fftw_cleanup();
 
-        return convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res) / 1e17;
+        return convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res);
     }
 
     /**
@@ -125,7 +125,7 @@ public:
         std::array<Eigen::MatrixXd, COLOR_NUMBER> res;
 
         // вычисление массива структур с положением и яркостью КО
-        auto star_array = field->view_star_array(scope_state.direction);
+        auto star_array = field->view_star_array(scope_state);
 
         // вычисление массива структур с положением и яркостью звезд
         auto sat_array = field->check_sat_array(scope_state, sat_state, sun_pos);

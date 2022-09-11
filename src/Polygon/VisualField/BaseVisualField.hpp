@@ -79,7 +79,7 @@ public:
      * @return массив структур с данными о звездах
      */
     [[nodiscard]] inline virtual std::vector<Star>
-    view_star_array(const Eigen::Vector3d &scope_dir) const = 0;
+    view_star_array(const ScopeState &scope_state) const = 0;
 
     /**
      * находит массив номеров зон (внутренняя сетка каталога), которые задеваются конусом обзора

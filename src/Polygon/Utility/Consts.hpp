@@ -20,7 +20,7 @@ constexpr double PLUNK_CONSTANT_LIGHT_SPEED = 6.62607015 * 2.99792458;
 const double K_ATMOSPHERE = 0.2; // коэффициент поглощения в атмосферы
 
 const double SUN_TSI = 1361; // солнечная постоянная
-const double STAR_BRIGHT = 0.032293; // яркость опорной звезды (Вега)
+const double STAR_BRIGHT = 2.6659876e-5; // яркость опорной звезды (Вега)
 const double STAR_MAG = 0.03; // видимая звездная величина опорной звезды (Вега)
 
 }

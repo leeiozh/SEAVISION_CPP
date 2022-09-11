@@ -42,15 +42,17 @@ public:
 
         // заполнение матрицы комплексными значениями зрачковой функции
         for (int i = 0; i < SIZE_X; ++i) {
-            double x = 2 * static_cast<double>(i) / (SIZE_X - 1) - 1;
+            // здесь координаты x, y - нормированные на апертуру зрачковые координаты, лежат в отрезке [-1, 1] -> [0, SIZE]
+            // они сдвинуты таким образом, чтобы Фурье считался правильно
+            double x = 4 * static_cast<double>(i) / (SIZE_X - 1) - 2;
             for (int j = 0; j < SIZE_Y; ++j) {
-                double y = 2 * static_cast<double>(j) / (SIZE_Y - 1) - 1;
+                double y = 4 * static_cast<double>(j) / (SIZE_Y - 1) - 2;
                 auto del = static_cast<std::complex<double>>(delta_func->calc_delta_func(x, y));
                 auto trans = static_cast<std::complex<double>>(trans_func->calc_trans_func(x, y));
                 double aber = aber_func->calc_aberration_func(x, y);
 
                 std::complex<double> number = del * trans * static_cast<std::complex<double>>(std::exp(
-                        -2 * M_PI * aber * std::complex<double>(0, 1)));
+                        -2 * M_PI * std::complex<double>(0, 1)) * (aber));
 
                 number += atm_noise->calc_atm_noise(x, y);
 
@@ -70,18 +72,14 @@ public:
         fftw_destroy_plan(p);
         fftw_cleanup();
 
-        double max_element = 0.;
-
         // вычисление квадрата модуля прообраза
         for (int i = 0; i < SIZE_X; ++i) {
             for (int j = 0; j < SIZE_Y; ++j) {
                 double real = fft_matrix[i * SIZE_X + j][0];
                 double imag = fft_matrix[i * SIZE_X + j][1];
                 matrix(i, j) = real * real + imag * imag;
-                max_element = std::max(max_element, matrix(i, j));
             }
         }
-//        matrix /= max_element;
     };
 
     // вычисление ФРТ в точке

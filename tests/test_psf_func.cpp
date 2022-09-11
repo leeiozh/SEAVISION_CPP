@@ -16,21 +16,23 @@ namespace Polygon {
 
 TEST(TEST_PSF, PSF_SIMPLE) {
 
-    const int SIZE_X = 20;
-    const int SIZE_Y = 20;
+    const int SIZE_X = 200;
+    const int SIZE_Y = 200;
 
     Eigen::MatrixXd c_coeffs(2, 2);
 //    c_coeffs << 0, 0, 0, 0, 0, 0;
-    c_coeffs << 0.1, 0.2, 0, 0;
+    c_coeffs << 0.0, 0.0, 0, 0;
     Eigen::MatrixXd s_coeffs(2, 2);
-    s_coeffs << 0.2, 0.1, 0, 0;
+    s_coeffs << 0.0, 0.0, 0, 0;
 //    s_coeffs << 0, 2, 0, 1, 1, 0;
 
     auto aber_func_ptr = std::make_shared<AberrationFunction>(c_coeffs, s_coeffs);
     auto trans_func_ptr = std::make_shared<ConstantTransmissionFunction>(1.);
     auto delta_func_ptr = std::make_shared<CircularDeltaFunction>();
 
-    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr);
+    auto atm_noise = std::make_shared<MoffatAtmosphericNoise>(5e-1, 0.5);
+
+    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr, atm_noise);
 
 //    std::cout << std::fixed << std::showpoint;
 //    std::cout << std::setprecision(2);
@@ -64,9 +66,9 @@ TEST(TEST_PSF, PSF_NOISE) {
     auto trans_func_ptr = std::make_shared<ConstantTransmissionFunction>(1);
     auto delta_func_ptr = std::make_shared<CircularDeltaFunction>();
 
-    DiegoAtmosphericNoise mof_noise = DiegoAtmosphericNoise(5, 1, 1);
+    auto mof_noise = std::make_shared<DiegoAtmosphericNoise>(5, 1, 1);
 
-    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr);
+    PSF<SIZE_X, SIZE_Y> psf(aber_func_ptr, delta_func_ptr, trans_func_ptr, mof_noise);
 
 //    std::cout << std::fixed << std::showpoint;
 //    std::cout << std::setprecision(2);

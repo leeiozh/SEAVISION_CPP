@@ -85,10 +85,10 @@ CircleVisualField::view_area_nums(const Eigen::Vector3d &scope_dir) const {
 }
 
 std::vector<Star>
-CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
+CircleVisualField::view_star_array(const ScopeState &scope_state) const {
 
     // вектор номеров зон, которых затронул конус обзора
-    std::vector<int> areas = view_area_nums(scope_dir);
+    std::vector<int> areas = view_area_nums(scope_state.direction);
 
     std::vector<Star> res(12121 * static_cast<int>(areas.size())); // 12121 - максимальное число звезд в одной зоне
 
@@ -115,6 +115,9 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
     int counter_ex = 0;
     std::string line;
 
+    Eigen::Vector3d ax_y = (scope_state.position.normalized() - scope_state.direction.normalized()).normalized();
+    Eigen::Vector3d ax_x = (scope_state.direction.normalized().cross(ax_y)).normalized();
+
     // этот цикл для основного файла
     while (std::getline(file_cat, line)) {
         auto area_num = std::stoi(line.substr(0, 4));
@@ -128,20 +131,20 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                 // вектор направления на звезду
                 Eigen::Vector3d g_vec = {std::cos(dec) * std::cos(asc), std::cos(dec) * std::sin(asc), std::sin(dec)};
 
-                if (std::acos(g_vec.dot(scope_dir.normalized())) < cone_angle) {
+                if (std::acos(g_vec.dot(scope_state.direction.normalized())) < cone_angle) {
                     double mag = std::stod(line.substr(110, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
 
-                    double scope_norm = scope_dir.norm();
-                    Eigen::Vector3d proj = g_vec * (scope_norm * scope_norm) / (g_vec.dot(scope_dir)) - scope_dir;
-                    Eigen::Vector2d pos_2d = {(scope_dir.cross(Eigen::Vector3d(0, 0, 1)).normalized()).dot(proj),
-                                              proj.z()};
-                    pos_2d /= (scope_dir.norm() * std::tan(cone_angle));
+                    Eigen::Vector3d diff = g_vec - scope_state.direction;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
+
+                    Eigen::Vector2d pos2d = Eigen::Vector2d(proj.dot(ax_x), proj.dot(ax_y));
+                    pos2d /= scope_state.direction.norm() * std::tan(cone_angle);
 
                     // вычисление яркости звезды по формуле Погсона
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
-                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos2d};
                     counter_ex++;
                 }
             } catch (...) {
@@ -164,20 +167,20 @@ CircleVisualField::view_star_array(const Eigen::Vector3d &scope_dir) const {
                 // вектор направления на звезду
                 Eigen::Vector3d g_vec = {std::cos(dec) * std::cos(asc), std::cos(dec) * std::sin(asc), std::sin(dec)};
 
-                if (std::acos(g_vec.dot(scope_dir.normalized())) < cone_angle) {
+                if (std::acos(g_vec.dot(scope_state.direction.normalized())) < cone_angle) {
                     double mag = std::stod(line.substr(83, 6));
                     int in_area_num = std::stoi(line.substr(5, 5));
                     int in_star_com = std::stoi(line.substr(11, 1));
 
-                    double scope_norm = scope_dir.norm();
-                    Eigen::Vector3d proj = g_vec * (scope_norm * scope_norm) / (g_vec.dot(scope_dir)) - scope_dir;
-                    Eigen::Vector2d pos_2d = {(scope_dir.cross(Eigen::Vector3d(0, 0, 1)).normalized()).dot(proj),
-                                              proj.z()};
-                    pos_2d /= (scope_dir.norm() * std::tan(cone_angle));
+                    Eigen::Vector3d diff = g_vec - scope_state.direction;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
+
+                    Eigen::Vector2d pos2d = Eigen::Vector2d(proj.dot(ax_x), proj.dot(ax_y));
+                    pos2d /= scope_state.direction.norm() * std::tan(cone_angle);
 
                     // вычисление яркости звезды по формуле Погсона
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
-                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos_2d};
+                    res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos2d};
                     counter_ex++;
                 }
             } catch (...) {

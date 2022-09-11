@@ -8,8 +8,11 @@
 #include "../Utility/Consts.hpp"
 #include "../Utility/Structs.hpp"
 #include "../VisualField/BaseVisualField.hpp"
+#include "../PSF/DeltaFunction/BaseDeltaFunction.hpp"
+#include "../PSF/DeltaFunction/CircularDeltaFunction.hpp"
 #include <cmath>
 #include <memory>
+#include <utility>
 
 namespace Polygon {
 
@@ -21,12 +24,17 @@ class SkyLight {
      */
 protected:
     double zenith_bright = 0; // зенитная яркость неба (в единицах яркости (интенсивности))
+    std::shared_ptr<BaseDeltaFunction> delta_function;
+
+
 public:
     /**
      * конструктор класса фона неба
      * @param zenith_bright зенитная яркость
      */
-    inline explicit SkyLight(const double &zenith_bright = 0.) : zenith_bright(zenith_bright) {}
+    inline explicit SkyLight(const double &zenith_bright = 0.,
+                             std::shared_ptr<BaseDeltaFunction> delta_function = std::make_shared<CircularDeltaFunction>())
+            : zenith_bright(zenith_bright), delta_function(std::move(delta_function)) {}
 
     /**
      * вычисление фона неба в точке с поданным зенитным расстоянием
@@ -58,8 +66,12 @@ public:
         for (int i = 0; i < SIZE_X; ++i) {
             double back = calc_at_point(
                     zenith + field->get_cone_angle() * (static_cast<double>(i) / static_cast<double>(SIZE_X) - 0.5));
+            double x = 2 * static_cast<double>(i) / (SIZE_X - 1) - 1;
             for (int j = 0; j < SIZE_Y; ++j) {
-                res(i, j) = back;
+                double y = 2 * static_cast<double>(j) / (SIZE_Y - 1) - 1;
+                if (delta_function->calc_delta_func(x, y)) {
+                    res(i, j) = back;
+                }
             }
         }
         return res;

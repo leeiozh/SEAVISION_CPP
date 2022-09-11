@@ -70,8 +70,7 @@ public:
      * @param scope_dir направление оси телескопа
      * @return массив структур с данными о звездах
      */
-    [[nodiscard]] std::vector<Star>
-    view_star_array(const Eigen::Vector3d &scope_dir) const override;
+    [[nodiscard]] std::vector<Star> view_star_array(const ScopeState &scope_state) const override;
 };
 
 } // namespace Polygon

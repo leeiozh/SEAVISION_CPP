@@ -50,7 +50,7 @@ public:
                     double elec = pictures[pic](i, j) * time_expose * params.pix_x * params.pix_y * light_length[pic] /
                                   PLUNK_CONSTANT_LIGHT_SPEED * 1e17;
                     elec *= quant_effiency[pic];
-                    elec = std::min(elec, params.pix_capacity);
+                    elec = std::min(static_cast<int>(elec), params.pix_capacity);
                     elec = std::max(elec, 0.);
                     res[pic](i, j) = static_cast<int>(elec);
                 }
@@ -76,7 +76,7 @@ public:
 
                     elec *= quant_effiency[pic];
                     elec += normal_random(params.noise_params);
-                    elec = std::min(elec, params.pix_capacity);
+                    elec = std::min(static_cast<int>(elec), params.pix_capacity);
                     elec = std::max(elec, 0.);
 
                     res[pic](i, j) = static_cast<int>(elec);
