@@ -50,7 +50,9 @@ public:
         int y_div = floor(y);
         double y_mod = y - y_div;
 
-        if (((x_div + 1) < SIZE_X) && ((y_div + 1) < SIZE_Y)) {
+//        std::cout << pos.x() << " " << pos.y() << std::endl;
+
+        if (((x_div + 1) < SIZE_X) && ((y_div + 1) < SIZE_Y) && x_div >= 0 && y_div >= 0) {
             res(x_div, y_div) = bright * (1 - x_mod) * (1 - y_mod);
             res(x_div + 1, y_div) = bright * x_mod * (1 - y_mod);
             res(x_div, y_div + 1) = bright * (1 - x_mod) * y_mod;
@@ -69,46 +71,56 @@ public:
         fftw_complex *f_pic;
         f_pic = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
+        auto pic_fftw = convert_eigen_to_fftw<SIZE_X, SIZE_Y>(pic);
+
         // проведение прямого преобразования Фурье над исходным изображением (точечные источники)
-        fftw_plan p1 = fftw_plan_dft_2d(SIZE_X, SIZE_Y, convert_eigen_to_fftw<SIZE_X, SIZE_Y>(pic), f_pic, FFTW_FORWARD,
-                                        FFTW_ESTIMATE);
+        fftw_plan p1 = fftw_plan_dft_2d(SIZE_X, SIZE_Y, pic_fftw, f_pic, FFTW_FORWARD, FFTW_ESTIMATE);
         fftw_execute(p1);
         fftw_destroy_plan(p1);
         fftw_cleanup();
+        fftw_free(pic_fftw);
 
         // проведение прямого преобразования Фурье над матрицей ФРТ
         fftw_complex *f_h;
-        f_h = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
+        f_h = (fftw_complex *) fftw_malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
-        fftw_plan p2 = fftw_plan_dft_2d(SIZE_X, SIZE_Y, convert_eigen_to_fftw<SIZE_X, SIZE_Y>(h_matrix), f_h,
-                                        FFTW_FORWARD, FFTW_ESTIMATE);
+        fftw_complex *h_matrix_fftw = convert_eigen_to_fftw<SIZE_X, SIZE_Y>(h_matrix);
+
+        fftw_plan p2 = fftw_plan_dft_2d(SIZE_X, SIZE_Y, h_matrix_fftw, f_h, FFTW_FORWARD, FFTW_ESTIMATE);
         fftw_execute(p2);
         fftw_destroy_plan(p2);
         fftw_cleanup();
+        fftw_free(h_matrix_fftw);
 
         // перемножение фурье-образов
         fftw_complex *f_mult;
-        f_mult = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
+        f_mult = (fftw_complex *) fftw_malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
         for (int i = 0; i < SIZE_X; ++i) {
             for (int j = 0; j < SIZE_Y; ++j) {
-                f_mult[i * SIZE_X + j][0] = f_pic[i * SIZE_X + j][0] * f_h[i * SIZE_X + j][0] -
-                                            f_pic[i * SIZE_X + j][1] * f_h[i * SIZE_X + j][1];
-                f_mult[i * SIZE_X + j][1] = f_pic[i * SIZE_X + j][0] * f_h[i * SIZE_X + j][1] +
-                                            f_pic[i * SIZE_X + j][1] * f_h[i * SIZE_X + j][0];
+                f_mult[i * SIZE_Y + j][0] = f_pic[i * SIZE_Y + j][0] * f_h[i * SIZE_Y + j][0] -
+                                            f_pic[i * SIZE_Y + j][1] * f_h[i * SIZE_Y + j][1];
+                f_mult[i * SIZE_Y + j][1] = f_pic[i * SIZE_Y + j][0] * f_h[i * SIZE_Y + j][1] +
+                                            f_pic[i * SIZE_Y + j][1] * f_h[i * SIZE_Y + j][0];
             }
         }
+        fftw_free(f_pic);
+        fftw_free(f_h);
 
         fftw_complex *res;
-        res = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
+        res = (fftw_complex *) fftw_malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
 
         // проведение обратного преобразования Фурье над полученным произведением
         fftw_plan p3 = fftw_plan_dft_2d(SIZE_X, SIZE_Y, f_mult, res, FFTW_BACKWARD, FFTW_ESTIMATE);
         fftw_execute(p3);
         fftw_destroy_plan(p3);
         fftw_cleanup();
+        fftw_free(f_mult);
 
-        return convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res);
+        auto res_eig = convert_fftw_to_eigen<SIZE_X, SIZE_Y>(res);
+        fftw_free(res);
+
+        return res_eig;
     }
 
     /**
@@ -150,6 +162,7 @@ public:
         }
 
         // погружение изображений в матрицу
+        // TODO: ЭТО СТРАННОЕ РЕШЕНИЕ, ПЕРЕСТРОИТЬ
         matrix.set_pictures(res);
 
         // конвертация интенсивности в количество фотоэлектронов исходя из параметров матрицы

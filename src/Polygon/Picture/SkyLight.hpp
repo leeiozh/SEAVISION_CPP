@@ -24,7 +24,7 @@ class SkyLight {
      */
 protected:
     double zenith_bright = 0; // зенитная яркость неба (в единицах яркости (интенсивности))
-    std::shared_ptr<BaseDeltaFunction> delta_function;
+    std::shared_ptr<BaseDeltaFunction> delta_function; // функция диафрагмирования
 
 
 public:
@@ -55,6 +55,9 @@ public:
      */
     [[nodiscard]] inline Eigen::MatrixXd
     calc_background(const ScopeState &scope, const std::shared_ptr<BaseVisualField> &field) const {
+
+        // TODO: ЗДЕСЬ ФОРМУЛЫ, В КОТОРЫХ Я НЕ УВЕРЕНА !!!
+
         double az = std::atan2(scope.position.y(), scope.position.x()); // азимут точки
         double phi = std::acos(scope.position.z() / scope.position.norm()); // широта точки
         double ra = std::atan2(scope.direction.y(), scope.direction.x()); // прямое восхождение исследуемой точки неба
@@ -64,13 +67,12 @@ public:
 
         Eigen::MatrixXd res = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
         for (int i = 0; i < SIZE_X; ++i) {
-            double back = calc_at_point(
-                    zenith + field->get_cone_angle() * (static_cast<double>(i) / static_cast<double>(SIZE_X) - 0.5));
             double x = 2 * static_cast<double>(i) / (SIZE_X - 1) - 1;
             for (int j = 0; j < SIZE_Y; ++j) {
                 double y = 2 * static_cast<double>(j) / (SIZE_Y - 1) - 1;
                 if (delta_function->calc_delta_func(x, y)) {
-                    res(i, j) = back;
+                    res(i, j) = calc_at_point(zenith + field->get_y_angle() *
+                                                       (static_cast<double>(i) / static_cast<double>(SIZE_X) - 0.5));;
                 }
             }
         }

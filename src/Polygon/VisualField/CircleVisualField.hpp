@@ -21,22 +21,22 @@ public:
 
     /**
      * конструктор класса
-     * @param cone_angle угол раствора конуса обзора
+     * @param angle_sizes размеры поля обзора
      * @param view_sizes размеры передней апертуры
      * @throw PolygonBaseException в случае, если угол обзора не лежит в [0, pi/2]
      */
-    inline explicit CircleVisualField(const double &cone_angle, Eigen::Vector2d view_sizes) : BaseVisualField(
-            cone_angle, std::move(view_sizes)) {};
+    inline explicit CircleVisualField(Eigen::Vector2d angle_sizes, Eigen::Vector2d view_sizes)
+            : BaseVisualField(std::move(angle_sizes), std::move(view_sizes)) {};
 
     /**
      * конструктор класса
-     * @param cone_angle угол раствора конуса обзора
+     * @param angle_sizes размеры поля обзора
      * @param view_sizes размеры передней апертуры
      * @param path путь к папке с каталогом
      * @throw PolygonBaseException в случае, если угол обзора не лежит в [0, pi/2]
      */
-    inline CircleVisualField(const double &cone_angle, Eigen::Vector2d view_sizes, const std::string &path)
-            : BaseVisualField(cone_angle, std::move(view_sizes), path) {};
+    inline CircleVisualField(Eigen::Vector2d angle_sizes, Eigen::Vector2d view_sizes, const std::string &path)
+            : BaseVisualField(std::move(angle_sizes), std::move(view_sizes), path) {};
 
     /**
      * проверяет, попадает ли КО в конус обзора
@@ -44,8 +44,7 @@ public:
      * @param sat_pos положение КО
      * @return попадает / не попадает
      */
-    [[nodiscard]] bool check_sat(const ScopeState &scope_state,
-                                 const Eigen::Vector3d &sat_pos) const override;
+    [[nodiscard]] bool check_sat(const ScopeState &scope_state, const Eigen::Vector3d &sat_pos) const override;
 
     /**
      * находит массив КО, входящих в конус обзора, параллельно вычисляя их координаты в плоскости предметов и яркость
@@ -54,8 +53,7 @@ public:
      * @param sun_pos положение Солнца (необходимо для вычисления яркости)
      * @return массив структур с данными о КО
      */
-    [[nodiscard]] std::vector<SatState> check_sat_array(const ScopeState &scope_state,
-                                                        std::vector<SatState> &sat_state,
+    [[nodiscard]] std::vector<SatState> check_sat_array(const ScopeState &scope_state, std::vector<SatState> &sat_state,
                                                         const Eigen::Vector3d &sun_pos) override;
 
     /**

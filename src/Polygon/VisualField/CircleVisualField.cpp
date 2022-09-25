@@ -20,9 +20,14 @@ CircleVisualField::check_sat_array(const ScopeState &scope_state,
     std::vector<SatState> res(0);
     for (auto &sat: sat_state) {
         if (check_sat(scope_state, sat.position3d)) {
-            Eigen::Vector3d diff = sat.position3d - scope_state.direction;
-            Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
-            sat.position2d = {proj.x(), proj.y()};
+            double dir_norm2 = scope_state.direction.norm() * scope_state.direction.norm();
+            Eigen::Vector3d oy = (scope_state.position - scope_state.position.dot(scope_state.direction) / dir_norm2 *
+                                                         scope_state.direction).normalized();
+            Eigen::Vector3d ox = scope_state.direction.normalized().cross(oy);
+            Eigen::Vector3d diff = sat.position3d - scope_state.position;
+            Eigen::Vector3d proj = diff - diff.dot(scope_state.direction) / dir_norm2 * scope_state.direction;
+            sat.position2d = {proj.dot(ox) / std::tan(angle_sizes.x()), proj.dot(oy) / std::tan(angle_sizes.y())};
+            sat.position2d /= scope_state.direction.norm();
 
             // угол солнце - аппарат - телескоп
             double xi = std::acos(
@@ -115,8 +120,10 @@ CircleVisualField::view_star_array(const ScopeState &scope_state) const {
     int counter_ex = 0;
     std::string line;
 
-    Eigen::Vector3d ax_y = (scope_state.position.normalized() - scope_state.direction.normalized()).normalized();
-    Eigen::Vector3d ax_x = (scope_state.direction.normalized().cross(ax_y)).normalized();
+    double dir_norm2 = scope_state.direction.norm() * scope_state.direction.norm();
+    Eigen::Vector3d oy = (scope_state.position - scope_state.position.dot(scope_state.direction) / dir_norm2 *
+                                                 scope_state.direction).normalized();
+    Eigen::Vector3d ox = scope_state.direction.normalized().cross(oy);
 
     // этот цикл для основного файла
     while (std::getline(file_cat, line)) {
@@ -137,12 +144,14 @@ CircleVisualField::view_star_array(const ScopeState &scope_state) const {
                     int in_star_com = std::stoi(line.substr(11, 1));
 
                     Eigen::Vector3d diff = g_vec - scope_state.direction;
-                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction) / dir_norm2 * scope_state.direction;
 
-                    Eigen::Vector2d pos2d = Eigen::Vector2d(proj.dot(ax_x), proj.dot(ax_y));
-                    pos2d /= scope_state.direction.norm() * std::tan(cone_angle);
+                    Eigen::Vector2d pos2d = {proj.dot(ox) / std::tan(angle_sizes.x()),
+                                             proj.dot(oy) / std::tan(angle_sizes.y())};
+                    pos2d /= scope_state.direction.norm();
 
                     // вычисление яркости звезды по формуле Погсона
+                    // TODO: ВОЗМОЖНО, LOG ЛУЧШЕ POW, ПОСОВЕТОВАТЬСЯ
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));
                     res[counter_ex] = Star{area_num, in_area_num, in_star_com, asc, dec, mag, bright, pos2d};
                     counter_ex++;
@@ -173,10 +182,11 @@ CircleVisualField::view_star_array(const ScopeState &scope_state) const {
                     int in_star_com = std::stoi(line.substr(11, 1));
 
                     Eigen::Vector3d diff = g_vec - scope_state.direction;
-                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction.normalized()) * scope_state.direction;
+                    Eigen::Vector3d proj = diff - diff.dot(scope_state.direction) / dir_norm2 * scope_state.direction;
 
-                    Eigen::Vector2d pos2d = Eigen::Vector2d(proj.dot(ax_x), proj.dot(ax_y));
-                    pos2d /= scope_state.direction.norm() * std::tan(cone_angle);
+                    Eigen::Vector2d pos2d = {proj.dot(ox) / std::tan(angle_sizes.x()),
+                                             proj.dot(oy) / std::tan(angle_sizes.y())};
+                    pos2d /= scope_state.direction.norm();
 
                     // вычисление яркости звезды по формуле Погсона
                     double bright = STAR_BRIGHT * std::pow(10, -0.4 * (mag - STAR_MAG));

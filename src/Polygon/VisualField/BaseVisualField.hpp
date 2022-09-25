@@ -21,6 +21,7 @@ class BaseVisualField {
      */
 protected:
     double cone_angle; // угол раствора конуса обзора
+    Eigen::Vector2d angle_sizes;
     Eigen::Vector2d view_sizes; // размеры передней апертуры
     std::string path_to_res = "resources"; // путь к папке с каталогом
 
@@ -28,12 +29,13 @@ public:
 
     /**
      * конструктор класса
-     * @param cone_angle угол раствора конуса обзора
+     * @param angle_sizes размеры поля обзора
      * @param view_sizes размеры передней апертуры
      * @throw PolygonBaseException в случае, если угол обзора не лежит в [0, pi/2]
      */
-    inline BaseVisualField(const double &cone_angle, Eigen::Vector2d view_sizes) : cone_angle(
-            cone_angle), view_sizes(std::move(view_sizes)) {
+    inline BaseVisualField(Eigen::Vector2d angle_sizes, Eigen::Vector2d view_sizes) : angle_sizes(
+            std::move(angle_sizes)), view_sizes(std::move(view_sizes)) {
+        cone_angle = std::max(angle_sizes.x(), angle_sizes.y());
         if (cone_angle > M_PI_2 || cone_angle < 0) {
             std::stringstream buff;
             buff << "Угол раствора конуса обзора может принимать значения из [0, pi/2]! Текущий угол: "
@@ -49,8 +51,12 @@ public:
      * @param path путь к папке с каталогом
      * @throw PolygonBaseException в случае, если угол обзора не лежит в [0, pi/2]
      */
-    inline BaseVisualField(const double &cone_angle, Eigen::Vector2d view_sizes, std::string path) :
-            path_to_res(std::move(path)), cone_angle(cone_angle), view_sizes(std::move(view_sizes)) {};
+    inline BaseVisualField(Eigen::Vector2d angle_sizes, Eigen::Vector2d view_sizes,
+                           std::string path) : path_to_res(std::move(path)),
+                                               angle_sizes(std::move(angle_sizes)),
+                                               view_sizes(std::move(view_sizes)) {
+        cone_angle = std::max(angle_sizes.x(), angle_sizes.y());
+    };
 
     /**
      * проверяет, попадает ли КО в конус обзора
@@ -95,6 +101,14 @@ public:
      */
     [[nodiscard]] inline double get_cone_angle() const {
         return cone_angle;
+    }
+
+    /**
+     * геттер угла поля зрения по оси у (для вычисления зенитного расстояния)
+     * @return
+     */
+    [[nodiscard]] inline double get_y_angle() const {
+        return angle_sizes.y();
     }
 }; // namespace Polygon
 }

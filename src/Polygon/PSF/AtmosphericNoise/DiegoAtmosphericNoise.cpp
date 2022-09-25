@@ -10,6 +10,8 @@ double DiegoAtmosphericNoise::calc_atm_noise(const double &x, const double &y) c
 
     double r = std::sqrt(x * x + y * y); // расстояние до точечного источника в предметной плоскости
 
+    // ТУТ ВЫЧИСЛЯЕТСЯ POW И ДВА ПОДГОНОЧНЫХ ПАРАМЕТРА ВМЕСТО ОДНОГО, ПОЭТОМУ МОДЕЛЬ MOFFAT ПРЕДПОЧТИТЕЛЬНЕЕ
+
     return 1 / (1 + std::pow((r / hwrw), p_coeff * (1 + r / pr_coeff)));
 }
 

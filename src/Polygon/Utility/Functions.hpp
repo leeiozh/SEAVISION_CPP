@@ -46,12 +46,13 @@ inline fftw_complex *convert_eigen_to_fftw(const Eigen::MatrixXd &matrix, const 
     fftw_complex *res;
     res = (fftw_complex *) malloc(SIZE_X * SIZE_Y * sizeof(fftw_complex));
     double max = 1.;
+    // TODO: ЭТА НОРМИРОВКА ТОЖЕ ОКОЛОПОДГОН, ПЕРЕСЧИТАТЬ
     if (norm) max = matrix.maxCoeff();
 
     for (int i = 0; i < SIZE_X; ++i) {
         for (int j = 0; j < SIZE_Y; ++j) {
-            res[SIZE_X * i + j][0] = matrix(i, j) / max;
-            res[SIZE_X * i + j][1] = 0.;
+            res[SIZE_Y * i + j][0] = matrix(i, j) / max;
+            res[SIZE_Y * i + j][1] = 0.;
         }
     }
     return res;
@@ -71,10 +72,11 @@ inline Eigen::MatrixXd convert_fftw_to_eigen(const fftw_complex *matrix, const b
 
     for (int i = 0; i < SIZE_X; ++i) {
         for (int j = 0; j < SIZE_Y; ++j) {
-            res(i, j) = matrix[i * SIZE_X + j][0];
+            res(i, j) = matrix[i * SIZE_Y + j][0];
         }
     }
     double max = 1.;
+    // TODO: ЭТА НОРМИРОВКА ТОЖЕ ОКОЛОПОДГОН, ПЕРЕСЧИТАТЬ
     if (norm) max = res.maxCoeff();
     return res / max;
 }

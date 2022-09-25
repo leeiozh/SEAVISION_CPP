@@ -20,7 +20,7 @@ class Matrix {
 protected:
     MatrixParams params; // параметры матрицы
     std::array<double, COLOR_NUMBER> light_length; // массив используемых длин волн
-    std::array<double, COLOR_NUMBER> quant_effiency; // массив коэффициентов квантовой эффективности на используемых длинах волн
+    std::array<double, COLOR_NUMBER> quant_efficiency; // массив коэффициентов квантовой эффективности на используемых длинах волн
     std::array<Eigen::MatrixXd, COLOR_NUMBER> pictures; // полученные изображения
 public:
 
@@ -28,13 +28,13 @@ public:
      * конструктор матрицы
      * @param matrixParams параметры матрицы
      * @param light_length массив используемых длин волн
-     * @param quant_effiency массив коэффициентов квантовой эффективности на используемых длинах волн
+     * @param quant_efficiency массив коэффициентов квантовой эффективности на используемых длинах волн
      */
     inline Matrix(const MatrixParams &matrixParams,
                   const std::array<double, COLOR_NUMBER> &light_length,
-                  const std::array<double, COLOR_NUMBER> &quant_effiency) : params(matrixParams),
-                                                                            light_length(light_length),
-                                                                            quant_effiency(quant_effiency) {}
+                  const std::array<double, COLOR_NUMBER> &quant_efficiency) : params(matrixParams),
+                                                                              light_length(light_length),
+                                                                              quant_efficiency(quant_efficiency) {}
 
     /**
      * конвертация интенсивности в количество фотоэлектрон без учета шума
@@ -48,8 +48,8 @@ public:
             for (int i = 0; i < SIZE_X; ++i) {
                 for (int j = 0; j < SIZE_Y; ++j) {
                     double elec = pictures[pic](i, j) * time_expose * params.pix_x * params.pix_y * light_length[pic] /
-                                  PLUNK_CONSTANT_LIGHT_SPEED * 1e17;
-                    elec *= quant_effiency[pic];
+                                  PLUNK_CONSTANT_LIGHT_SPEED * 1e17; //1е17 - околоподгон, надо пересчитать
+                    elec *= quant_efficiency[pic];
                     elec = std::min(static_cast<int>(elec), params.pix_capacity);
                     elec = std::max(elec, 0.);
                     res[pic](i, j) = static_cast<int>(elec);
@@ -72,9 +72,9 @@ public:
             for (int i = 0; i < SIZE_X; ++i) {
                 for (int j = 0; j < SIZE_Y; ++j) {
                     double elec = pictures[pic](i, j) * time_expose * params.pix_x * params.pix_y * light_length[pic] /
-                                  PLUNK_CONSTANT_LIGHT_SPEED * 1e17;
+                                  PLUNK_CONSTANT_LIGHT_SPEED * 1e17; //1е17 - TODO: околоподгон, надо пересчитать
 
-                    elec *= quant_effiency[pic];
+                    elec *= quant_efficiency[pic];
                     elec += normal_random(params.noise_params);
                     elec = std::min(static_cast<int>(elec), params.pix_capacity);
                     elec = std::max(elec, 0.);
@@ -98,6 +98,7 @@ public:
     }
 
     // сеттер матриц изображений
+    // TODO: ЭТО СТРАННОЕ РЕШЕНИЕ, НАДО ПЕРЕСТРОИТЬ
     inline void set_pictures(const std::array<Eigen::MatrixXd, COLOR_NUMBER> &pics) {
         pictures = pics;
     }
