@@ -50,7 +50,7 @@ To do this, in your project directory (`my_project`), create a file named
 
 ```cmake
 cmake_minimum_required(VERSION 3.14)
-project(Polygon)
+project(SeaVision)
 
 # GoogleTest requires at least C++11
 set(CMAKE_CXX_STANDARD 11)

@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.17)
-project(Polygon)
+cmake_minimum_required(VERSION 3.7)
+project(SeaVision)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -14,8 +14,8 @@ find_package(Eigen3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(FFTW REQUIRED fftw3 IMPORTED_TARGET)
 
-add_library(Polygon ${MY_PROJECT_SOURCES})
+add_library(SeaVision ${MY_PROJECT_SOURCES})
 
-target_link_libraries(Polygon PUBLIC Eigen3::Eigen PkgConfig::FFTW)
+target_link_libraries(SeaVision PUBLIC Eigen3::Eigen PkgConfig::FFTW)
 
-target_include_directories(Polygon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(SeaVision PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

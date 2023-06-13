@@ -16,7 +16,7 @@ foreach(TEST_FILE IN LISTS TEST_SOURCES)
     add_executable(${EXECUTABLE_NAME} ${TEST_FILE})
     target_link_libraries(
     	${EXECUTABLE_NAME}
-        Polygon	# Подключаем проект
+        SeaVision	# Подключаем проект
     	gtest		# Подключаем библиотеку gtest
     	gtest_main	# Подключаем библиотеку gtest
     )

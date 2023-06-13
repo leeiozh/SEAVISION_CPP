@@ -3,44 +3,36 @@
 //
 
 #include <fstream>
+#include "SeaVision/Interpolant/Mesh.hpp"
 #include "gtest/gtest.h"
-#include "../src/Polygon/Matrix/Matrix.hpp"
 
-namespace Polygon {
+namespace SeaVision {
 
-TEST(TEST_MATRIX, MATRIX_SIMPLE) {
+TEST(TEST_AREA, AREA_SIMPLE) {
 
-    const int SIZE_X = 200;
-    const int SIZE_Y = 200;
+    Mesh mesh = Mesh(4000, 4000, 1.875);
+    Area area = Area(720, 720, -90, 90, 720);
 
-    Polygon::NoiseParams noiseParams{5, 5};
-    Polygon::MatrixParams matrixParams{0.1, 0.1, 2, 2, noiseParams, 330};
+    Eigen::MatrixXi back = Eigen::MatrixXi::Zero(4000, 4000);
 
-    std::array<Eigen::MatrixXd, COLOR_NUMBER> pics;
-    pics[0] = Eigen::MatrixXd::Zero(SIZE_X, SIZE_Y);
-
-    for (int i = 0; i < SIZE_X; ++i) {
-        pics[0](i, i) = 1e-6;
+    for (int i = 0; i < 4000; ++i) {
+        for (int j = 0; j < 200; ++j) {
+            for (int k = 0; k < 10; ++k){
+                back(i, 20 * j + k) = 1.;
+            }
+            //back(10 * j, i) = 2.;
+        }
     }
 
-    pics[1] = 1.5e-6 * Eigen::MatrixXd::Ones(SIZE_X, SIZE_Y);
-    pics[2] = 2e-6 * Eigen::MatrixXd::Ones(SIZE_X, SIZE_Y);
+    Eigen::MatrixXd res = mesh.calc_back(area, back);
 
-    std::array<double, 3> lengths = {700., 546.1, 435.8};
-    std::array<double, 3> quant_eff = {0.9, 0.99, 0.8};
+    std::ofstream out("/home/leeiozh/ocean/seavision/test1.csv");
 
-    Matrix<SIZE_X, SIZE_Y> matrix(matrixParams, lengths, quant_eff);
-
-    matrix.to_electrons_with_noise(1e-6);
-
-    std::ofstream out("/home/leeiozh/mmcp/calculation_results/Matrix.csv");
-
-    for (int i = 0; i < SIZE_X; ++i) {
-        for (int j = 0; j < SIZE_Y; ++j) {
-            out << matrix(0, i, j) << ",";
+    for (int i = 0; i < res.rows(); ++i) {
+        for (int j = 0; j < res.cols(); ++j) {
+            out << res(i, j) << ",";
         }
         out << std::endl;
     }
 }
-
 }
