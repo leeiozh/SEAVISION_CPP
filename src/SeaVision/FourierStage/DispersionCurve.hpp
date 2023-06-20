@@ -38,16 +38,26 @@ public:
      * @param index current index
      * @param data current backscatter
      */
-    void update(int index, const Eigen::MatrixXd& data);
+    void update(int index, const Eigen::MatrixXd &data);
 
     /**
      * calculating Fourier stage
      * @param data current backscatter
-     * @return fourier transform of current back
+     * @return Fourier transform of current back
      */
-    [[nodiscard]] Eigen::MatrixXcd calc_fourier_2d(const Eigen::MatrixXd& data) const;
+    [[nodiscard]] Eigen::MatrixXcd calc_fourier_2d_one(const Eigen::MatrixXd &data) const;
 
-    [[nodiscard]] Eigen::MatrixXd calc_welch() const;
+    /**
+     * calculating Welch transform with half Hanning window
+     * @return Welch transform of current Fourier queue
+     */
+    [[nodiscard]] Eigen::VectorX<Eigen::MatrixXd> calc_welch() const;
+
+    /**
+     * convert from S(omega, kx, ky) to S(omega, |k|)
+     * @return dispersion picture
+     */
+    [[nodiscard]] static Eigen::MatrixXd calc_abs_wave_num(const Eigen::VectorX<Eigen::MatrixXd> &data3d) ;
 };
 
 }

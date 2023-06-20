@@ -12,8 +12,10 @@ namespace SeaVision{
     struct InputStructure {
 
         double cog, sog, giro;
+        double lat, lon;
         double step;
-        Eigen::MatrixXd bcksctr;
+        int size = 4096;
+        Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size, size);
 
     };
 }

@@ -2,7 +2,6 @@
 // Created by leeiozh on 13.04.23.
 //
 
-#include <iostream>
 #include "Mesh.hpp"
 
 namespace SeaVision {
@@ -50,6 +49,12 @@ Eigen::MatrixXd Mesh::calc_back(const SeaVision::Area &area, const Eigen::Matrix
             double y = size_dist + jj + x_norm * (vertexes(3, 1) + y_norm * (vertexes(0, 1) - vertexes(3, 1)) - jj);
             int y_div = static_cast<int>(y);
 
+            /*
+            // просто интерполяция, использовать для ускорения запуска программы
+            res(i, j) = back(mesh(x_div, y_div).indexes[0], mesh(x_div, y_div).indexes[1]);
+             */
+
+            // выглядит жутко, но считаться должно быстро
             res(i, j) =
                     (1 - (x - x_div)) * (1 - (y - y_div)) *
                     (back(mesh(x_div, y_div).indexes[0], mesh(x_div, y_div).indexes[1]) *
@@ -87,13 +92,10 @@ Eigen::MatrixXd Mesh::calc_back(const SeaVision::Area &area, const Eigen::Matrix
                      (1 - mesh(x_div + 1, y_div + 1).weights[0]) * mesh(x_div + 1, y_div + 1).weights[1] +
                      back(mesh(x_div + 1, y_div + 1).indexes[0] + 1, mesh(x_div + 1, y_div + 1).indexes[1] + 1) *
                      mesh(x_div + 1, y_div + 1).weights[0] * mesh(x_div + 1, y_div + 1).weights[1]);
-
-//            std::cout << "1 " << i << " " << j << std::endl;
-//            std::cout << "2 " << x << " " << y << std::endl;
-//            std::cout << "3 " << mesh(x, y).indexes[0] << " " << mesh(x, y).indexes[1] << std::endl;
         }
     }
     return res;
-}
 
 }
+
+} // namespace

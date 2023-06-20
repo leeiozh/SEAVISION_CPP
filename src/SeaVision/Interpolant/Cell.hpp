@@ -10,8 +10,11 @@
 namespace SeaVision {
 
 struct Cell {
-    Eigen::Vector2i indexes = Eigen::Vector2i::Zero();
-    Eigen::Vector2d weights = Eigen::Vector2d::Zero();
+    /**
+     * structure for cell consists pair of indexes and pair of weights for bilinear interpolation
+     */
+    Eigen::Vector2i indexes = Eigen::Vector2i::Zero(); // index x and y in polar of current cell in cartesian
+    Eigen::Vector2d weights = Eigen::Vector2d::Zero(); // weights of point rho_i and theta_i
 };
 
 }

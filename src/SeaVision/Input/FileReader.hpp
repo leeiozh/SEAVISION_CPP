@@ -18,7 +18,9 @@ public:
 
     explicit FileReader(std::string path);
 
-    InputStructure read_one_file(std::string file_name);
+    [[nodiscard]] InputStructure read_one_file(const std::string &file_name) const;
+
+    [[nodiscard]] std::vector<InputStructure> read_queue_files(int num = INT_MAX) const;
 
 };
 
