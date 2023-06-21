@@ -7,6 +7,7 @@
 #include "SeaVision/Input/FileReader.hpp"
 #include "SeaVision/Interpolant/Mesh.hpp"
 #include "SeaVision/FourierStage/DispersionCurve.hpp"
+#include "SeaVision/Interpolant/AreaSearch.hpp"
 #include "gtest/gtest.h"
 
 namespace SeaVision {
@@ -57,7 +58,6 @@ TEST(TEST_FOURIER_INP, FOURIER_INP) {
 
     auto res_inp = reader.read_queue_files(1)[0];
 
-
     Mesh mesh = Mesh(4096, 4096, 1.875);
     Area area = Area(720, 720, 0, 0, 840);
 
@@ -105,7 +105,6 @@ TEST(TEST_WELCH, WELCH) {
     std::cout << "reading " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
-
     Mesh mesh = Mesh(4096, 4096, 1.875);
     Area area = Area(720, 720, 0, 0, 840);
 
@@ -147,6 +146,65 @@ TEST(TEST_WELCH, WELCH) {
         }
         out2 << std::endl;
     }
+
+}
+
+}
+
+namespace SeaVision {
+TEST(TEST_CURVE, CURVE) {
+
+    const int num_t = 256;
+
+    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.04/");
+
+    FileReader reader(path, 256, 720);
+
+    auto start = std::chrono::steady_clock::now();
+
+    auto res_inp = reader.read_queue_files(num_t);
+
+    auto end = std::chrono::steady_clock::now();
+    std::cout << "reading " << std::chrono::duration<double>(end - start).count() << "s\n";
+    start = end;
+
+    auto search = AreaSearch(16);
+    std::vector<InputStructure> std_back = std::vector<InputStructure>(res_inp.begin(), res_inp.begin() + 4);
+    double std_ang = search.search_area(std_back);
+
+    std::cout << std_ang << std::endl;
+
+    Mesh mesh = Mesh(720, 4096, 1.875);
+    Area area = Area(720, 720, -std_ang, std_ang, 840);
+
+    end = std::chrono::steady_clock::now();
+    std::cout << "meshing " << std::chrono::duration<double>(end - start).count() << "s\n";
+    start = end;
+
+    DispersionCurve dispersionCurve(num_t, 15, 32);
+
+    Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
+    for (int i = 0; i < num_t; ++i) {
+
+        res_back[i] = mesh.calc_back(area, res_inp[i].bcksctr);
+
+        if (i == 0) {
+            std::ofstream out("/home/leeiozh/ocean/seavisionCPP/test_back.csv");
+
+            for (int ii = 0; ii < res_back[i].rows(); ++ii) {
+                for (int j = 0; j < res_back[i].cols(); ++j) {
+                    out << res_back[i](ii, j) << ",";
+                }
+                out << std::endl;
+            }
+        }
+        dispersionCurve.update(i, res_back[i]);
+    }
+
+
+    end = std::chrono::steady_clock::now();
+    std::cout << "back " << std::chrono::duration<double>(end - start).count() << "s\n";
+    start = end;
 
 }
 

@@ -13,10 +13,12 @@ namespace SeaVision {
 class FileReader {
 
     std::string path;
+    int dist_start = 0;
+    int dist_end = -1;
 
 public:
 
-    explicit FileReader(std::string path);
+    explicit FileReader(std::string path, int dist_start = 0, int dist_end = -1);
 
     [[nodiscard]] InputStructure read_one_file(const std::string &file_name) const;
 

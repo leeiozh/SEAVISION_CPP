@@ -21,7 +21,13 @@ protected:
     int cut_index; // size of trimmed array after fourier transform
     int max_index; // size of array for spectrum calculation
 
+    double m0 = 0.;
+    double m1 = 0.;
+    double peak_period = 0.;
+    Eigen::VectorXd freq_spec;
+
     Eigen::VectorX<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation
+    Eigen::MatrixXd picture; // current curve picture
 
 public:
 
@@ -54,10 +60,15 @@ public:
     [[nodiscard]] Eigen::VectorX<Eigen::MatrixXd> calc_welch() const;
 
     /**
+     * calculating main parameters of dispersion curve and spectrum
+     */
+    void calc_curve();
+
+    /**
      * convert from S(omega, kx, ky) to S(omega, |k|)
      * @return dispersion picture
      */
-    [[nodiscard]] static Eigen::MatrixXd calc_abs_wave_num(const Eigen::VectorX<Eigen::MatrixXd> &data3d) ;
+    [[nodiscard]] static Eigen::MatrixXd calc_abs_wave_num(const Eigen::VectorX<Eigen::MatrixXd> &data3d);
 };
 
 }

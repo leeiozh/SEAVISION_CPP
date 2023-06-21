@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include "DispersionCurve.hpp"
 
 
@@ -15,6 +16,11 @@ DispersionCurve::DispersionCurve(int max_index, int width, int cut_index) : max_
 
 void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
     data_fourier[index] = calc_fourier_2d_one(data);
+
+    if (index >= 255) {
+        picture = calc_abs_wave_num(calc_welch());
+        calc_curve();
+    }
 }
 
 Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &data) const {
@@ -110,6 +116,26 @@ Eigen::MatrixXd DispersionCurve::calc_abs_wave_num(const Eigen::VectorX<Eigen::M
         }
     }
     return res;
+}
+
+void DispersionCurve::calc_curve() {
+
+    int half_size = static_cast<int>(picture.rows()) / 2;
+    Eigen::MatrixXd down = picture.block(0, 0, half_size, picture.cols());
+    Eigen::MatrixXd up = picture.block(half_size, 0, half_size, picture.cols());
+
+    picture.block(0, 0, half_size, picture.cols()) += up.colwise().reverse();
+    picture.block(half_size, 0, half_size, picture.cols()) += down.colwise().reverse();
+
+    std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_curve.csv");
+
+    for (int i = 0; i < picture.rows(); ++i) {
+        for (int j = 0; j < picture.cols(); ++j) {
+            out2 << picture(i, j) << ",";
+        }
+        out2 << std::endl;
+    }
+
 }
 
 } // namespace

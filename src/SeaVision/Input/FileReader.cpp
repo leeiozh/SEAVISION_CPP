@@ -9,11 +9,12 @@
 
 namespace SeaVision {
 
-FileReader::FileReader(std::string path) : path(std::move(path)) {}
+FileReader::FileReader(std::string path, int dist_start, int dist_end) : path(std::move(path)), dist_start(dist_start),
+                                                                         dist_end(dist_end) {}
 
 InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
-    InputStructure res;
+    InputStructure res{0, 0, 0, 0, 0, 1.875, dist_end - dist_start, 4096};
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
 
@@ -40,16 +41,22 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         res.sog = meta[7];
 
 
-        for (int i = 0; i < res.size; ++i) {
+        for (int i = 0; i < res.size_az; ++i) {
 
-            uint8_t curr_line[res.size];
+            uint8_t curr_line[res.size_az];
             file.read((char *) &curr_line, sizeof(curr_line));
 
             uint8_t junk[8];
             file.read((char *) &junk, sizeof(junk));
 
-            for (int j = 0; j < res.size; ++j) {
-                res.bcksctr(j, i) = curr_line[j];
+            if (dist_start == 0 && dist_end == -1) {
+                for (int j = 0; j < res.size_dist; ++j) {
+                    res.bcksctr(j, i) = curr_line[j];
+                }
+            } else {
+                for (int j = dist_start; j < dist_end; ++j) {
+                    res.bcksctr(j, i) = curr_line[j];
+                }
             }
 
         }
@@ -80,6 +87,13 @@ std::vector<InputStructure> FileReader::read_queue_files(const int num) const {
               [](const auto &lhs, const auto &rhs) {
                   return lhs.string() < rhs.string();
               });
+
+    if (num > static_cast<int>(filenames.size())) {
+        std::stringstream buff;
+        buff << "Not enough file in " << path << ". You request " << num << " files, but there is only " <<
+             static_cast<int>(filenames.size());
+        throw SeaVisionException(buff.str().c_str());
+    }
 
     for (int i = 0; i < std::min(num, static_cast<int>(filenames.size())); ++i) {
         res.push_back(read_one_file(filenames[i].string()));

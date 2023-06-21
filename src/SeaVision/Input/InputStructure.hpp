@@ -14,8 +14,9 @@ namespace SeaVision{
         double cog, sog, giro;
         double lat, lon;
         double step;
-        int size = 4096;
-        Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size, size);
+        int size_dist = 464;
+        int size_az = 4096;
+        Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size_dist, size_az);
 
     };
 }

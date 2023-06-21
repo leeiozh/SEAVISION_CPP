@@ -5,9 +5,9 @@
 #ifndef SEAVISION_MAINSTRUCTURE_HPP
 #define SEAVISION_MAINSTRUCTURE_HPP
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
-namespace SeaVision{
+namespace SeaVision {
 
 struct MainStruct {
 
@@ -17,6 +17,6 @@ struct MainStruct {
 };
 
 
-}
+} // namespace
 
 #endif //SEAVISION_MAINSTRUCTURE_HPP
