@@ -43,23 +43,21 @@ TEST(TEST_FOURIER, FOURIER) {
         }
         out2 << std::endl;
     }
-
-
 }
-
 }
 
 namespace SeaVision {
 TEST(TEST_FOURIER_INP, FOURIER_INP) {
 
     std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.04/");
+    ReadParameters params{0, 720, 720};
 
-    FileReader reader(path);
+    FileReader reader(path, params);
 
     auto res_inp = reader.read_queue_files(1)[0];
 
-    Mesh mesh = Mesh(4096, 4096, 1.875);
-    Area area = Area(720, 720, 0, 0, 840);
+    Mesh mesh = Mesh(params, 1.875);
+    Area area = Area(720, 720, 0, 0, 0);
 
     Eigen::MatrixXd res_back = mesh.calc_back(area, res_inp.bcksctr);
 
@@ -79,7 +77,7 @@ TEST(TEST_FOURIER_INP, FOURIER_INP) {
 
     for (int i = 0; i < res.rows(); ++i) {
         for (int j = 0; j < res.cols(); ++j) {
-            out2 << res(i, j).real() << ",";
+            out2 << norm(res(i, j)) << ",";
             // std::cout << i << " " << j << " " << res(i, j).real() << " " << res(i, j).imag()<<std::endl;
         }
         out2 << std::endl;
@@ -93,9 +91,10 @@ TEST(TEST_WELCH, WELCH) {
 
     const int num_t = 256;
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.04/");
+    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07_1200/");
+    ReadParameters params{0, 720, 720};
 
-    FileReader reader(path);
+    FileReader reader(path, params);
 
     auto start = std::chrono::steady_clock::now();
 
@@ -105,7 +104,7 @@ TEST(TEST_WELCH, WELCH) {
     std::cout << "reading " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
-    Mesh mesh = Mesh(4096, 4096, 1.875);
+    Mesh mesh = Mesh(params, 1.875);
     Area area = Area(720, 720, 0, 0, 840);
 
     end = std::chrono::steady_clock::now();
@@ -156,9 +155,11 @@ TEST(TEST_CURVE, CURVE) {
 
     const int num_t = 256;
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.04/");
+    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07_1200/");
 
-    FileReader reader(path, 256, 720);
+    ReadParameters params{0, 720, 720};
+
+    FileReader reader(path, params);
 
     auto start = std::chrono::steady_clock::now();
 
@@ -168,22 +169,22 @@ TEST(TEST_CURVE, CURVE) {
     std::cout << "reading " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
-    auto search = AreaSearch(16);
+    auto search = AreaSearch(18);
     std::vector<InputStructure> std_back = std::vector<InputStructure>(res_inp.begin(), res_inp.begin() + 4);
     double std_ang = search.search_area(std_back);
 
     std::cout << std_ang << std::endl;
 
-    Mesh mesh = Mesh(720, 4096, 1.875);
-    Area area = Area(720, 720, -std_ang, std_ang, 840);
+    Mesh mesh = Mesh(params, 1.875);
+    Area area = Area(720, 720, 0, 0, 840); // 840 (minus, plus)
 
     end = std::chrono::steady_clock::now();
     std::cout << "meshing " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
     DispersionCurve dispersionCurve(num_t, 15, 32);
-
     Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
+
     for (int i = 0; i < num_t; ++i) {
 
         res_back[i] = mesh.calc_back(area, res_inp[i].bcksctr);

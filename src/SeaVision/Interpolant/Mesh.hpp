@@ -7,6 +7,7 @@
 
 #include "Cell.hpp"
 #include "Area.hpp"
+#include "SeaVision/Input/InputStructure.hpp"
 #include <eigen3/Eigen/Dense>
 
 namespace SeaVision {
@@ -17,19 +18,17 @@ class Mesh {
      */
 protected:
     Eigen::MatrixX<Cell> mesh; // matrix of mesh
+    ReadParameters params; // parameters of reading (number of lines)
     double dist_step; // meters
-    int size_dist; // pixels
-    int size_angle; // pixels
 
 
 public:
     /**
      * constructor of mesh
-     * @param size_dist distance in meters between neighbours cells
-     * @param size_angle size in pixels of input matrix on x axis
+     * @param params parameters of reading
      * @param dist_step size in pixels of input matrix on y axis
      */
-    Mesh(const int &size_dist, const int &size_angle, const double &dist_step);
+    Mesh(ReadParameters params, double dist_step);
 
     /**
      * calculating backscatter in cartesian

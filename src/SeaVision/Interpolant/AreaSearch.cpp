@@ -3,7 +3,6 @@
 //
 
 #include <fstream>
-#include <iostream>
 #include "AreaSearch.hpp"
 
 namespace SeaVision {
@@ -68,15 +67,13 @@ double AreaSearch::search_area(const std::vector<InputStructure> &data) {
         }
     }
 
-    for (int t = 0; t < 4; ++t) {
-        std::ofstream out3("/home/leeiozh/ocean/seavisionCPP/test_disp" + std::to_string(t)+ ".csv");
+    std::ofstream out3("/home/leeiozh/ocean/seavisionCPP/test_std.csv");
 
-        for (int i = 0; i < std_back.rows(); ++i) {
-            for (int j = 0; j < std_back.cols(); ++j) {
-                out3 << data[t].bcksctr(i, j) << ",";
-            }
-            out3 << std::endl;
+    for (int i = 0; i < std_back.rows(); ++i) {
+        for (int j = 0; j < std_back.cols(); ++j) {
+            out3 << std_back(i, j) << ",";
         }
+        out3 << std::endl;
     }
 
     Eigen::VectorXd std_smooth = Eigen::VectorXd::Zero(az_zone);

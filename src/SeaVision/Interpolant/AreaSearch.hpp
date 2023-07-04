@@ -28,11 +28,16 @@ public:
 
     /**
      * function of search zone with the clearest signal by calculating deviation of set backscatters
-     * @param data set of backscatters
+     * @param data vector of backscatters
      * @return azimuth of the clearest signal
      */
     double search_area(const std::vector<Eigen::MatrixXd> &data);
 
+    /**
+     * function of search zone with the clearest signal by calculating deviation of set backscatters
+     * @param data vector of input structures
+     * @return azimuth of the clearest signal
+     */
     double search_area(const std::vector<InputStructure> &data);
 
 };

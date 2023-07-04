@@ -7,18 +7,23 @@
 
 #include <Eigen/Dense>
 
-namespace SeaVision{
+namespace SeaVision {
 
-    struct InputStructure {
+struct InputStructure {
+    double cog, sog, giro;
+    double lat, lon;
+    double step; // difference between neighbour cells in meters
+    int size_dist = 464; // number of read lines (distance)
+    int size_az = 4096; // number of read rows (azimuths)
+    Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size_dist, size_az); // read backscatter in polar
+};
 
-        double cog, sog, giro;
-        double lat, lon;
-        double step;
-        int size_dist = 464;
-        int size_az = 4096;
-        Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size_dist, size_az);
-
-    };
+struct ReadParameters {
+    int line_start = 0; // start of reading (px)
+    int line_end = 0; // end of reading (px), if "0" then read to end of file
+    int line_size = line_end - line_start; // (px)
+    int size_angle = 4096; // pixels
+};
 }
 
 #endif //SEAVISION_INPUTSTRUCTURE_HPP

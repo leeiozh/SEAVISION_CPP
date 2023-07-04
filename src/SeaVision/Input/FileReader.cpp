@@ -9,12 +9,11 @@
 
 namespace SeaVision {
 
-FileReader::FileReader(std::string path, int dist_start, int dist_end) : path(std::move(path)), dist_start(dist_start),
-                                                                         dist_end(dist_end) {}
+FileReader::FileReader(std::string path, const ReadParameters params) : path(std::move(path)), params(params) {}
 
 InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
-    InputStructure res{0, 0, 0, 0, 0, 1.875, dist_end - dist_start, 4096};
+    InputStructure res{0, 0, 0, 0, 0, 1.875, params.line_size, 4096};
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
 
@@ -23,6 +22,7 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         uint8_t head[23];
         file.read((char *) &head, sizeof(head));
 
+        // check if SP1 with quality 1.875
         if (head[10] != 7) {
             std::stringstream buff;
             buff << "Not SP1 in " << file_name << std::endl;
@@ -40,27 +40,30 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         res.cog = meta[6];
         res.sog = meta[7];
 
-
+        // reading throw one azimuth
         for (int i = 0; i < res.size_az; ++i) {
 
+            // read full line throw current azimuth
             uint8_t curr_line[res.size_az];
             file.read((char *) &curr_line, sizeof(curr_line));
 
+            // read some metadata which we don't used
             uint8_t junk[8];
             file.read((char *) &junk, sizeof(junk));
 
-            if (dist_start == 0 && dist_end == -1) {
+            // record necessary data
+
+            if (params.line_start == 0 && params.line_end == 0) {
+                res.size_dist = res.size_az;
                 for (int j = 0; j < res.size_dist; ++j) {
                     res.bcksctr(j, i) = curr_line[j];
                 }
             } else {
-                for (int j = dist_start; j < dist_end; ++j) {
-                    res.bcksctr(j, i) = curr_line[j];
+                for (int j = params.line_start; j < params.line_end; ++j) {
+                    res.bcksctr(j - params.line_start, i) = curr_line[j];
                 }
             }
-
         }
-
         file.close();
     } else {
         std::stringstream buff;
@@ -83,11 +86,13 @@ std::vector<InputStructure> FileReader::read_queue_files(const int num) const {
         }
     }
 
+    // sorting in alphabetical order
     std::sort(filenames.begin(), filenames.end(),
               [](const auto &lhs, const auto &rhs) {
                   return lhs.string() < rhs.string();
               });
 
+    // throw exception if not enough files in folder
     if (num > static_cast<int>(filenames.size())) {
         std::stringstream buff;
         buff << "Not enough file in " << path << ". You request " << num << " files, but there is only " <<
