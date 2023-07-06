@@ -5,6 +5,7 @@
 #ifndef SEAVISION_DISPERSIONCURVE_HPP
 #define SEAVISION_DISPERSIONCURVE_HPP
 
+#include "SeaVision/MainProcess/Consts.hpp"
 #include <Eigen/Dense>
 #include <fftw3.h>
 
@@ -24,7 +25,7 @@ protected:
     double m0 = 0.;
     double m1 = 0.;
     double peak_period = 0.;
-    Eigen::VectorXd freq_spec;
+    Eigen::VectorXd freq_spec = Eigen::VectorXd::Zero(FOUR_NUM);
 
     Eigen::VectorX<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation
     Eigen::MatrixXd picture; // current curve picture
@@ -63,6 +64,23 @@ public:
      * calculating main parameters of dispersion curve and spectrum
      */
     void calc_curve();
+
+    /**
+     * calculating coefficient in \omega = \sqrt{gk} + k vcosalpha using weighted least squares
+     * @param omega vector of frequencies
+     * @param k_num vector of wave numbers
+     * @return coefficient
+     */
+    static double calc_vcosalpha(const std::vector<double> &omega, const std::vector<double> &k_num,
+                                 const std::vector<double> &sigma);
+
+    /**
+     * calculating freq / 2pi = \sqrt{gk} + k vcosalpha
+     * @param k_num wave number
+     * @param vcosalpha coefficient calculated using weighted least squares
+     * @return
+     */
+    static double dispersion_func(double k_num, double vcosalpha);
 
     /**
      * convert from S(omega, kx, ky) to S(omega, |k|)

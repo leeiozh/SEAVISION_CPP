@@ -155,7 +155,7 @@ TEST(TEST_CURVE, CURVE) {
 
     const int num_t = 256;
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07_1200/");
+    std::string path("/home/leeiozh/ocean/seavisionCPP/0606_4338/");
 
     ReadParameters params{0, 720, 720};
 
@@ -176,7 +176,7 @@ TEST(TEST_CURVE, CURVE) {
     std::cout << std_ang << std::endl;
 
     Mesh mesh = Mesh(params, 1.875);
-    Area area = Area(720, 720, 0, 0, 840); // 840 (minus, plus)
+    Area area = Area(720, 720, -std_ang, std_ang, 840); // 840 (minus, plus)
 
     end = std::chrono::steady_clock::now();
     std::cout << "meshing " << std::chrono::duration<double>(end - start).count() << "s\n";
