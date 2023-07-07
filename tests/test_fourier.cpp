@@ -7,6 +7,7 @@
 #include "SeaVision/Input/FileReader.hpp"
 #include "SeaVision/Interpolant/Mesh.hpp"
 #include "SeaVision/FourierStage/DispersionCurve.hpp"
+#include "SeaVision/FourierStage/SpectrumStructure.hpp"
 #include "SeaVision/Interpolant/AreaSearch.hpp"
 #include "gtest/gtest.h"
 
@@ -31,7 +32,7 @@ TEST(TEST_FOURIER, FOURIER) {
         out << std::endl;
     }
 
-    DispersionCurve dispersionCurve(256, 15, data.cols());
+    DispersionCurve dispersionCurve(256, 15, data.cols(), K_MAX);
 
     Eigen::MatrixXcd res = dispersionCurve.calc_fourier_2d_one(data);
 
@@ -70,7 +71,7 @@ TEST(TEST_FOURIER_INP, FOURIER_INP) {
         out << std::endl;
     }
 
-    DispersionCurve dispersionCurve(256, 15, 32);
+    DispersionCurve dispersionCurve(256, 15, 32, K_MAX);
     Eigen::MatrixXcd res = dispersionCurve.calc_fourier_2d_one(res_back);
 
     std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_four_real.csv");
@@ -111,7 +112,7 @@ TEST(TEST_WELCH, WELCH) {
     std::cout << "meshing " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
-    DispersionCurve dispersionCurve(num_t, 15, 32);
+    DispersionCurve dispersionCurve(num_t, 15, 32, K_MAX);
 
     Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
     for (int i = 0; i < num_t; ++i) {
@@ -182,13 +183,15 @@ TEST(TEST_CURVE, CURVE) {
     std::cout << "meshing " << std::chrono::duration<double>(end - start).count() << "s\n";
     start = end;
 
-    DispersionCurve dispersionCurve(num_t, 15, 32);
+    DispersionCurve dispersionCurve(num_t, 15, 32, K_MAX);
     Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
 
     for (int i = 0; i < num_t; ++i) {
 
         res_back[i] = mesh.calc_back(area, res_inp[i].bcksctr);
+        dispersionCurve.update(i, res_back[i]);
 
+        /*
         if (i == 0) {
             std::ofstream out("/home/leeiozh/ocean/seavisionCPP/test_back.csv");
 
@@ -198,16 +201,22 @@ TEST(TEST_CURVE, CURVE) {
                 }
                 out << std::endl;
             }
-        }
-        dispersionCurve.update(i, res_back[i]);
+        }*/
     }
 
+    SpectrumStruct res = dispersionCurve.get_params();
 
-    end = std::chrono::steady_clock::now();
-    std::cout << "back " << std::chrono::duration<double>(end - start).count() << "s\n";
-    start = end;
+    std::cout << res.m0 << " " << res.peak_period << std::endl;
 
+    std::ofstream out("/home/leeiozh/ocean/seavisionCPP/freq_spec.csv");
+
+    for (double j : res.freq_spec) {
+        out << j << ",";
+    }
 }
 
-}
+
+} // namespace
+
+
 

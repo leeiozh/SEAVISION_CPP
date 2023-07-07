@@ -5,7 +5,8 @@
 #ifndef SEAVISION_DISPERSIONCURVE_HPP
 #define SEAVISION_DISPERSIONCURVE_HPP
 
-#include "SeaVision/MainProcess/Consts.hpp"
+#include "SpectrumStructure.hpp"
+#include "SeaVision/Consts.hpp"
 #include <Eigen/Dense>
 #include <fftw3.h>
 
@@ -13,22 +14,20 @@ namespace SeaVision {
 
 class DispersionCurve {
 
-    /*
-     * class for all fourier stage
+    /**
+     * class for all fourier stage: Fourier and Welch transforms, calculating spectrum parameters
      */
 
 protected:
-    int width; // width of cut curve
-    int cut_index; // size of trimmed array after fourier transform
-    int max_index; // size of array for spectrum calculation
+    int width = DELTA_FREQ; // width of cut curve
+    int cut_index = CUT_NUM; // size of trimmed array after fourier transform
+    int max_index = FOUR_NUM; // size of array for spectrum calculation
+    double max_wave_num = K_MAX; // maximum wave number
 
-    double m0 = 0.;
-    double m1 = 0.;
-    double peak_period = 0.;
-    Eigen::VectorXd freq_spec = Eigen::VectorXd::Zero(FOUR_NUM);
+    SpectrumStruct spectrum_struct; // spectrum parameters (m0, m1, peak_period, freq_spectrum)
 
-    Eigen::VectorX<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation
-    Eigen::MatrixXd picture; // current curve picture
+    Eigen::VectorX<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation (3D)
+    Eigen::MatrixXd picture; // current curve picture (2D)
 
 public:
 
@@ -38,7 +37,7 @@ public:
      * @param width width of cut curve
      * @param cut_index size of trimmed array after fourier transform
      */
-    DispersionCurve(int max_index, int width, int cut_index);
+    DispersionCurve(int max_index, int width, int cut_index, double max_wave_num);
 
     /**
      * update current state
@@ -87,6 +86,13 @@ public:
      * @return dispersion picture
      */
     [[nodiscard]] static Eigen::MatrixXd calc_abs_wave_num(const Eigen::VectorX<Eigen::MatrixXd> &data3d);
+
+    /**
+     * getter of spectrum wave parameters
+     * @return structure with zeroth and first momentum, period of spectrum peak, frequency spectrum
+     */
+    SpectrumStruct get_params();
+
 };
 
 }

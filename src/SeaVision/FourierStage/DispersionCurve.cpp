@@ -10,8 +10,8 @@
 
 namespace SeaVision {
 
-DispersionCurve::DispersionCurve(int max_index, int width, int cut_index) : max_index(max_index), width(width),
-                                                                            cut_index(cut_index) {
+DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double max_wave_num) :
+        max_index(max_index), width(width), cut_index(cut_index), max_wave_num(max_wave_num) {
     data_fourier.resize(max_index);
 }
 
@@ -21,6 +21,7 @@ void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
     if (index >= 255) {
         auto welch = calc_welch();
         picture = calc_abs_wave_num(welch);
+        picture /= picture.maxCoeff();
         calc_curve();
     }
 }
@@ -81,11 +82,11 @@ double DispersionCurve::calc_vcosalpha(const std::vector<double> &omega, const s
         omega_sum += omega[i] / sigma[i];
         k_num_sum += k_num[i] / sigma[i];
     }
-    return (omega_sum / M_PI / 2. - std::sqrt(G_COEFF) * k_num_sq_sum) / k_num_sum;
+    return (omega_sum * M_PI * 2. - std::sqrt(G_COEFF) * k_num_sq_sum) / k_num_sum;
 }
 
 double DispersionCurve::dispersion_func(const double k_num, const double vcosalpha) {
-    return (std::sqrt(G_COEFF * k_num) + k_num * vcosalpha) / M_PI / 2.;
+    return (std::sqrt(G_COEFF * k_num) + k_num * vcosalpha) / M_PI / 2.; //
 }
 
 Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
@@ -179,80 +180,86 @@ void DispersionCurve::calc_curve() {
     picture.block(half_size, 0, half_size, picture.cols()) += down.colwise().reverse();
 
     // marking points of columns maximum
-    Eigen::VectorXd max_freq = Eigen::VectorXd::Zero(picture.rows());
-    Eigen::VectorXd grad = Eigen::VectorXd::Zero(picture.rows());
+    Eigen::VectorXi max_freq = argumax(picture, 0); // vec of argumax by freq for each wave number
+    Eigen::VectorXd grad = gradient(max_freq); // gradient of vec above
 
-    for (int i = 0; i < picture.rows(); ++i) {
-        double max_freq_val = 0;
-        for (int j = 0; j < picture.cols(); ++j) {
-            if (max_freq_val < picture(i, j)) {
-                max_freq_val = picture(i, j);
-                max_freq[i] = j;
-            }
-        }
-        if (i == 0) {
-            grad[i] = 0;
-        } else {
-            grad[i] = max_freq[i] - max_freq[i - 1];
-        }
-    }
+    /* for me: picture.rows = 256 (freq), picture.cols = 32 (wave_num) */
 
-    int argmax_max_freq = argmax(max_freq);
+    int argmax_max_freq = argumax(max_freq);
 
-    if ((max_freq.maxCoeff() > 0.5 * static_cast<double>(picture.rows()) - 10) &&
+    if ((max_freq.maxCoeff() > (0.5 * static_cast<double>(picture.rows())) - 10) &&
         (grad.segment(argmax_max_freq + 1, grad.size() - argmax_max_freq).sum() < 0)) {
         max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq) *= -1;
         max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq) +=
-                picture.rows() * Eigen::VectorXd::Ones(max_freq.size() - argmax_max_freq);
+                picture.rows() * Eigen::VectorXi::Ones(max_freq.size() - argmax_max_freq);
     }
 
     Eigen::VectorX<bool> mask = Eigen::VectorX<bool>::Zero(grad.size());
-
-    Eigen::VectorXd grad_sorted = Eigen::VectorXd(grad);
+    Eigen::VectorXd grad_sorted = abs(grad); // below used module of gradient!
     std::sort(grad_sorted.begin(), grad_sorted.end());
     double grad_med = grad_sorted[static_cast<int>(grad_sorted.size() / 2)]; // median
 
     for (int i = 0; i < mask.size(); ++i) {
-        if (std::abs(grad[i]) >= 3 * grad_med) mask[i] = true;
-        if (max_freq[i] > static_cast<double >(picture.rows()) / 10.) mask[i] = false;
-        if (max_freq[i] < 9. * static_cast<double >(picture.rows()) / 10) mask[i] = false;
+        if (std::abs(grad[i]) < 3 * grad_med) mask[i] = true;
+        if (max_freq[i] <= static_cast<double >(picture.rows()) / 10.) mask[i] = false;
+        if (max_freq[i] >= 9. * static_cast<double >(picture.rows()) / 10) mask[i] = false;
     }
     max_freq[0] = 0;
     mask[0] = true;
 
+    std::cout << "mask " << mask.transpose() << std::endl;
+
     std::vector<double> max_freq_masked; // y of fitting points
     std::vector<double> k_num_vec; // x of fitting points
     std::vector<double> sigma_vec; // inverse weights of fitting points
+
     for (int i = 0; i < mask.size(); ++i) {
         if (mask[i]) {
             max_freq_masked.push_back(max_freq[i] / static_cast<double>(picture.rows()) / TURN_PERIOD);
-            k_num_vec.push_back(static_cast<double>(i) / static_cast<double>(mask.size()) * K_MAX);
-            sigma_vec.push_back(1 / picture.row(i).maxCoeff());
+            k_num_vec.push_back(static_cast<double>(i) / static_cast<double>(mask.size()) * max_wave_num);
+            sigma_vec.push_back(1. / picture.col(i).maxCoeff());
         }
     }
 
-    double vcosalpha = calc_vcosalpha(max_freq_masked, k_num_vec, sigma_vec); // fitted coefficient
+    double vcosalpha = 0.; // if everything is bad, we believe that we measure in drift
+
+    if (static_cast<double>(max_freq_masked.size()) > static_cast<double>(picture.cols()) * 0.2) {
+        vcosalpha = calc_vcosalpha(max_freq_masked, k_num_vec, sigma_vec); // fitted coefficient
+    }
+
+    std::cout << "vcos " << vcosalpha << std::endl;
 
     Eigen::MatrixXd noise = Eigen::MatrixXd(picture); // there we cut area around dispersion curve
+
+    /*
+    Eigen::VectorXi left_vec = Eigen::VectorXi::Zero(picture.cols());
+    Eigen::VectorXi right_vec = Eigen::VectorXi::Zero(picture.cols());
+     */
 
     for (int k = 0; k < picture.cols(); ++k) { // loop for columns
 
         // calculating frequency of current wave number
-        double freq = dispersion_func(static_cast<double>(k) / static_cast<double>(picture.cols()) * K_MAX, vcosalpha);
-        freq *= (FOUR_NUM * TURN_PERIOD);
+        double freq = dispersion_func(static_cast<double>(k) / static_cast<double>(picture.cols()) * max_wave_num,
+                                      vcosalpha);
+        freq *= (max_index * TURN_PERIOD);
 
-        int left = std::max(static_cast<int>(std::round(freq - DELTA_FREQ)), 0); // left side of curve
-        int right = std::min(static_cast<int>(std::round(freq - DELTA_FREQ)), FOUR_NUM); // right side of curve
+        int left = std::max(static_cast<int>(std::round(freq - width)), 0); // left side of curve
+        int right = std::min(static_cast<int>(std::round(freq + width)), max_index); // right side of curve
         if (right > left) {
             noise.col(k).segment(left, right - left).setZero(); // zeroing signal
         }
 
+        /*
+        left_vec[k] = left;
+        right_vec[k] = right;
+        */
+
         // analogically for mirroring part
         freq *= -1;
-        freq += FOUR_NUM - 1;
+        freq += max_index - 1;
 
-        left = std::max(static_cast<int>(std::round(freq - DELTA_FREQ)), 0);
-        right = std::min(static_cast<int>(std::round(freq - DELTA_FREQ)), FOUR_NUM);
+        left = std::max(static_cast<int>(std::round(freq - width)), 0);
+        right = std::min(static_cast<int>(std::round(freq - width)), max_index);
         if (right > left) {
             noise.col(k).segment(left, right - left).setZero();
         }
@@ -267,18 +274,21 @@ void DispersionCurve::calc_curve() {
     Eigen::VectorXd nn = trapezoid(noise); // convolution throw wave number for noise
 
     for (int i = 1; i < signal.rows(); ++i) { // calculating a spectrum
-        freq_spec[i] = ss[i] / nn[i];
+        spectrum_struct.freq_spec[i] = ss[i] / nn[i];
     }
 
-    m0 = trapezoid(ss) / trapezoid(nn); // calculating zeroth momentum
+    spectrum_struct.peak_period = TURN_PERIOD / (static_cast<double>(argumax(spectrum_struct.freq_spec)) /
+                                                 static_cast<double >(spectrum_struct.freq_spec.size()));
+
+    spectrum_struct.m0 = trapezoid(ss) / trapezoid(nn); // calculating zeroth momentum
 
     Eigen::VectorXd freq_vec = Eigen::VectorXd::Zero(ss.size());
     freq_vec.setLinSpaced(0, 1 / TURN_PERIOD);
 
-    m1 = trapezoid(ss * freq_vec) / trapezoid(nn * freq_vec); // calculating first momentum
+    spectrum_struct.m1 = trapezoid(ss * freq_vec) / trapezoid(nn * freq_vec); // calculating first momentum
 
+    /*
     std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_curve.csv");
-
     for (int i = 0; i < picture.rows(); ++i) {
         for (int j = 0; j < picture.cols(); ++j) {
             out2 << picture(i, j) << ",";
@@ -286,6 +296,20 @@ void DispersionCurve::calc_curve() {
         out2 << std::endl;
     }
 
+    std::ofstream out3("/home/leeiozh/ocean/seavisionCPP/left_mark.csv");
+    for (int i: left_vec) {
+        out3 << i << ",";
+    }
+    std::ofstream out4("/home/leeiozh/ocean/seavisionCPP/right_mark.csv");
+    for (int i: right_vec) {
+        out4 << i << ",";
+    }
+    */
+
+}
+
+SpectrumStruct DispersionCurve::get_params() {
+    return spectrum_struct;
 }
 
 } // namespace

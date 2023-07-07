@@ -1,22 +1,23 @@
 //
-// Created by leeiozh on 6/16/23.
+// Created by leeiozh on 7/7/23.
 //
 
 #ifndef SEAVISION_OUTPUTSTRUCTURE_HPP
 #define SEAVISION_OUTPUTSTRUCTURE_HPP
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Core>
+#include "SeaVision/Consts.hpp"
 
 namespace SeaVision {
 
-struct InputStructure {
+struct OutputStructure {
 
-    std::array<double, 3> swh;
-    std::array<double, 3> per;
-    std::array<double, 3> dir;
-    std::array<double, 3> len;
+    Eigen::Vector3d swh = Eigen::Vector3d::Zero();
+    Eigen::Vector3d per = Eigen::Vector3d::Zero();
+    Eigen::Vector3d dir = Eigen::Vector3d::Zero();
+    Eigen::Vector3d len = Eigen::Vector3d::Zero();
 
-    Eigen::VectorXd rose;
+    Eigen::VectorXd rose = Eigen::VectorXd::Zero(ROSE_SIZE);
 
 };
 }
