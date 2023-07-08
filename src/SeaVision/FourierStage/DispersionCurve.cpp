@@ -35,33 +35,19 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     pic_fftw = (fftw_complex *) malloc(data.size() * sizeof(fftw_complex));
 
     fftw_plan plan = fftw_plan_dft_2d(data.rows(), data.cols(), pic_fftw, f_pic, FFTW_FORWARD, FFTW_ESTIMATE);
-
     for (int i = 0; i < data.rows(); ++i) {
         for (int j = 0; j < data.cols(); ++j) {
             pic_fftw[data.cols() * i + j][0] = data(i, j);
             pic_fftw[data.cols() * i + j][1] = 0.;
         }
     }
-
     fftw_execute(plan);
 
     Eigen::MatrixXcd res = Eigen::MatrixXd::Zero(cut_index, cut_index);
-
     for (int i = 0; i < cut_index; ++i) {
         for (int j = 0; j < cut_index; ++j) {
             res(i, j) = std::complex<double>(f_pic[i * data.rows() + j][0], f_pic[i * data.rows() + j][1]);
-            //        std::cout << i << " " << j << " " << f_pic[i * data.rows() + j][0] << " " << f_pic[i * data.rows() + j][1]
-            //                  << std::endl;
         }
-    }
-
-    std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_f.csv");
-
-    for (int i = 0; i < picture.rows(); ++i) {
-        for (int j = 0; j < picture.cols(); ++j) {
-            out2 << norm(res(i, j)) << ",";
-        }
-        out2 << std::endl;
     }
 
     fftw_destroy_plan(plan);
@@ -101,7 +87,6 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
         for (int j = 0; j < data_fourier[0].rows(); ++j) {
             fftw_complex *out;
             out = (fftw_complex *) malloc(data_fourier.size() * sizeof(fftw_complex));
-
             fftw_complex *inp;
             inp = (fftw_complex *) malloc(data_fourier.size() * sizeof(fftw_complex));
 
@@ -207,7 +192,9 @@ void DispersionCurve::calc_curve() {
     max_freq[0] = 0;
     mask[0] = true;
 
+#ifdef DEBUG
     std::cout << "mask " << mask.transpose() << std::endl;
+#endif
 
     std::vector<double> max_freq_masked; // y of fitting points
     std::vector<double> k_num_vec; // x of fitting points
@@ -228,13 +215,12 @@ void DispersionCurve::calc_curve() {
     }
 
     std::cout << "vcos " << vcosalpha << std::endl;
-
     Eigen::MatrixXd noise = Eigen::MatrixXd(picture); // there we cut area around dispersion curve
 
-    /*
+#ifdef DEBUG
     Eigen::VectorXi left_vec = Eigen::VectorXi::Zero(picture.cols());
     Eigen::VectorXi right_vec = Eigen::VectorXi::Zero(picture.cols());
-     */
+#endif
 
     for (int k = 0; k < picture.cols(); ++k) { // loop for columns
 
@@ -249,10 +235,10 @@ void DispersionCurve::calc_curve() {
             noise.col(k).segment(left, right - left).setZero(); // zeroing signal
         }
 
-        /*
+#ifdef DEBUG
         left_vec[k] = left;
         right_vec[k] = right;
-        */
+#endif
 
         // analogically for mirroring part
         freq *= -1;
@@ -284,10 +270,9 @@ void DispersionCurve::calc_curve() {
 
     Eigen::VectorXd freq_vec = Eigen::VectorXd::Zero(ss.size());
     freq_vec.setLinSpaced(0, 1 / TURN_PERIOD);
-
     spectrum_struct.m1 = trapezoid(ss * freq_vec) / trapezoid(nn * freq_vec); // calculating first momentum
 
-    /*
+
     std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_curve.csv");
     for (int i = 0; i < picture.rows(); ++i) {
         for (int j = 0; j < picture.cols(); ++j) {
@@ -296,6 +281,7 @@ void DispersionCurve::calc_curve() {
         out2 << std::endl;
     }
 
+#ifdef DEBUG
     std::ofstream out3("/home/leeiozh/ocean/seavisionCPP/left_mark.csv");
     for (int i: left_vec) {
         out3 << i << ",";
@@ -304,7 +290,7 @@ void DispersionCurve::calc_curve() {
     for (int i: right_vec) {
         out4 << i << ",";
     }
-    */
+#endif
 
 }
 

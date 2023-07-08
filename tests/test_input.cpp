@@ -5,8 +5,9 @@
 #include <fstream>
 #include "SeaVision/Input/FileReader.hpp"
 #include "SeaVision/Interpolant/Mesh.hpp"
-#include "SeaVision/Input/InputStructure.hpp"
 #include "gtest/gtest.h"
+
+const double TOLERANCE = 1e-13;
 
 namespace SeaVision {
 
@@ -17,20 +18,23 @@ TEST(TEST_FILE_READER, READER) {
 
     FileReader reader(path, params);
 
-    auto res_inp = reader.read_queue_files(1)[0];
+    auto res_inp = reader.read_queue_files(256)[0];
 
     Mesh mesh = Mesh(params, 1.875);
     Area area = Area(720, 720, 0, 0, 0);
     Eigen::MatrixXd res = mesh.calc_back(area, res_inp.bcksctr);
 
-    std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_back_cart.csv");
+    ASSERT_FALSE(std::abs(res(0, 0) - 177.0) > TOLERANCE);
+    ASSERT_FALSE(std::abs(res(100, 100) - 116.0) > TOLERANCE);
+
+    /*std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_back_cart.csv");
 
     for (int i = 0; i < res.rows(); ++i) {
         for (int j = 0; j < res.cols(); ++j) {
             out2 << res(i, j) << ",";
         }
         out2 << std::endl;
-    }
+    }*/
 
 }
 }

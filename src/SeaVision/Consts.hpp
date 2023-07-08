@@ -17,6 +17,8 @@ constexpr double DELTA_FREQ = 15;
 constexpr int FOUR_NUM = 256;
 constexpr double BETA = -1.2;
 constexpr int ROSE_SIZE = 180;
+constexpr double A_COEFF = 0.;
+constexpr double B_COEFF = 4.;
 
 }
 
