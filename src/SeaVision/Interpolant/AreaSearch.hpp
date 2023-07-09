@@ -16,6 +16,7 @@ class AreaSearch {
      */
 private:
     double curr_az; // current azimuth of zone with max deviation (degrees)
+    int curr_az_ind; // number of zone with max deviation (from 0 to az_zone)
     int az_zone; // number of zones split by azimuth
 
 public:
@@ -31,14 +32,7 @@ public:
      * @param data vector of backscatters
      * @return azimuth of the clearest signal
      */
-    double search_area(const std::vector<Eigen::MatrixXd> &data);
-
-    /**
-     * function of search zone with the clearest signal by calculating deviation of set backscatters
-     * @param data vector of input structures
-     * @return azimuth of the clearest signal
-     */
-    double search_area(const std::vector<InputStructure> &data);
+    int search_area(const std::vector<Eigen::MatrixXi> &data);
 
 };
 

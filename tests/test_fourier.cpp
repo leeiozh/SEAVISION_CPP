@@ -23,7 +23,7 @@ TEST(TEST_FOURIER, FOURIER) {
 
     auto res_inp = reader.read_queue_files(1)[0];
 
-    Mesh mesh = Mesh(params, 1.875);
+    Mesh mesh = Mesh(params, STEP);
     Area area = Area(720, 720, 0, 0, 0);
 
     Eigen::MatrixXd res_back = mesh.calc_back(area, res_inp.bcksctr);
@@ -58,7 +58,7 @@ TEST(TEST_WELCH, WELCH) {
 
     auto res_inp = reader.read_queue_files(num_t);
 
-    Mesh mesh = Mesh(params, 1.875);
+    Mesh mesh = Mesh(params, STEP);
     Area area = Area(720, 720, 0, 0, 840);
 
     DispersionCurve dispersionCurve(num_t, 15, 32, K_MAX);
@@ -93,19 +93,22 @@ TEST(TEST_CURVE, CURVE) {
 
     const int num_t = 256;
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07_1200/");
+    std::string path("/home/leeiozh/ocean/seavisionCPP/0606_4338/");
     ReadParameters params{0, 720, 720};
     FileReader reader(path, params);
 
     auto start = std::chrono::steady_clock::now();
     auto res_inp = reader.read_queue_files(num_t);
-    auto search = AreaSearch(18);
-    std::vector<InputStructure> std_back = std::vector<InputStructure>(res_inp.begin(), res_inp.begin() + 4);
+    auto search = AreaSearch(NUM_AREA);
+    std::vector<Eigen::MatrixXi> std_back(4);
+    for (int i = 0; i < std_back.size(); ++i){
+        std_back[i] = res_inp[i].bcksctr;
+    }
     double std_ang = search.search_area(std_back);
-    Mesh mesh = Mesh(params, 1.875);
+    Mesh mesh = Mesh(params, STEP);
     Area area = Area(720, 720, -std_ang, std_ang, 840); // 840 (minus, plus)
 
-    DispersionCurve dispersionCurve(num_t, 15, 32, K_MAX);
+    DispersionCurve dispersionCurve(num_t, 10, 32, K_MAX);
     Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
 
     for (int i = 0; i < num_t; ++i) {

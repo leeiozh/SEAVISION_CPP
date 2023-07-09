@@ -16,10 +16,11 @@ DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double
 }
 
 void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
-    data_fourier[index] = calc_fourier_2d_one(data);
-
-    if (index >= 255) {
-        auto welch = calc_welch();
+    if (index < FOUR_NUM) {
+        data_fourier[index] = calc_fourier_2d_one(data);
+    } else {
+        data_fourier[index % FOUR_NUM] = calc_fourier_2d_one(data);
+        auto welch = calc_welch(index);
         picture = calc_abs_wave_num(welch);
         picture /= picture.maxCoeff();
         calc_curve();
@@ -34,7 +35,8 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     fftw_complex *pic_fftw;
     pic_fftw = (fftw_complex *) malloc(data.size() * sizeof(fftw_complex));
 
-    fftw_plan plan = fftw_plan_dft_2d(data.rows(), data.cols(), pic_fftw, f_pic, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_plan plan = fftw_plan_dft_2d(static_cast<int>(data.rows()), static_cast<int>(data.cols()), pic_fftw, f_pic,
+                                      FFTW_FORWARD, FFTW_ESTIMATE);
     for (int i = 0; i < data.rows(); ++i) {
         for (int j = 0; j < data.cols(); ++j) {
             pic_fftw[data.cols() * i + j][0] = data(i, j);
@@ -75,7 +77,9 @@ double DispersionCurve::dispersion_func(const double k_num, const double vcosalp
     return (std::sqrt(G_COEFF * k_num) + k_num * vcosalpha) / M_PI / 2.; //
 }
 
-Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
+Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::
+
+calc_welch(int index) const {
 
     Eigen::VectorX<Eigen::MatrixXd> res = Eigen::VectorX<Eigen::MatrixXd>(data_fourier.size());
 
@@ -84,7 +88,7 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
     }
 
     for (int i = 0; i < data_fourier[0].rows(); ++i) {
-        for (int j = 0; j < data_fourier[0].rows(); ++j) {
+        for (int j = 0; j < data_fourier[0].cols(); ++j) {
             fftw_complex *out;
             out = (fftw_complex *) malloc(data_fourier.size() * sizeof(fftw_complex));
             fftw_complex *inp;
@@ -94,11 +98,12 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
                                               FFTW_ESTIMATE);
 
             // detrending
-            Eigen::VectorXcd data_ij = Eigen::VectorXd::Zero(data_fourier.size());
-            Eigen::VectorXcd x_ij = Eigen::VectorXd::Zero(data_ij.size());
-            for (int t = 0; t < data_fourier.size(); ++t) {
-                data_ij[t] = data_fourier[t](i, j);
-                x_ij[t] = static_cast<std::complex<double>>(t);
+            Eigen::VectorXcd data_ij = Eigen::VectorXcd::Zero(FOUR_NUM);
+            Eigen::VectorXcd x_ij = Eigen::VectorXcd::Zero(FOUR_NUM);
+            for (int t = 0; t < FOUR_NUM; ++t) {
+                int ind = (t + index % FOUR_NUM) % FOUR_NUM; // indexes shift for fourier array
+                data_ij[t] = data_fourier[ind](i, j);
+                x_ij[t] = static_cast<std::complex<double>>(ind);
             }
             data_ij -= Eigen::VectorXcd::Ones(data_ij.size()) * data_ij.mean();
             auto size = static_cast<double>(data_ij.size());
@@ -109,19 +114,18 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch() const {
                     (size * x_ij.norm() * x_ij.norm() - x_ij_sum * x_ij_sum);
 
             std::complex<double> b_coeff = (d_ij_sum - a_coeff * x_ij_sum) / size;
-
             data_ij -= (a_coeff * x_ij + b_coeff * Eigen::VectorXcd::Ones(data_ij.size()));
 
-
             for (int t = 0; t < data_fourier.size(); ++t) {
+                int ind = (t + index % FOUR_NUM + 1) % FOUR_NUM; // indexes shift for fourier array
                 double hann = 0.5 * (1 - std::cos(2 * M_PI * t / static_cast<double>(data_fourier.size()))); // or 1
-                inp[t][0] = hann * data_ij[t].real();
-                inp[t][1] = hann * data_ij[t].imag();
+                inp[t][0] = hann * data_ij[ind].real();
+                inp[t][1] = hann * data_ij[ind].imag();
             }
             fftw_execute(plan);
 
             for (int t = 0; t < data_fourier.size(); ++t) {
-                res[t](i, j) = out[t][0] * out[t][0] + out[t][1] * out[t][1];
+                res[t](i, j) = out[t][0] * out[t][0] + out[t][1] * out[t][1]; // square norm
             }
             fftw_destroy_plan(plan);
             fftw_cleanup();
@@ -192,9 +196,7 @@ void DispersionCurve::calc_curve() {
     max_freq[0] = 0;
     mask[0] = true;
 
-#ifdef DEBUG
     std::cout << "mask " << mask.transpose() << std::endl;
-#endif
 
     std::vector<double> max_freq_masked; // y of fitting points
     std::vector<double> k_num_vec; // x of fitting points

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <utility>
 #include "FileReader.hpp"
+#include "SeaVision/Consts.hpp"
 #include "SeaVision/SeaVisionBaseException.hpp"
 
 namespace SeaVision {
@@ -13,7 +14,7 @@ FileReader::FileReader(std::string path, const ReadParameters params) : path(std
 
 InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
-    InputStructure res{0, 0, 0, 0, 0, 1.875, params.line_size, 4096};
+    InputStructure res{0, 0, 0, 0, 0, STEP, params.line_size, 4096};
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
 
@@ -73,6 +74,22 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
     return res;
 
+}
+
+InputStructure FileReader::read_next_file(int index) const {
+    std::vector<std::filesystem::path> filenames;
+    for (const auto &entry: std::filesystem::directory_iterator{path}) {
+        if (entry.is_regular_file()) {
+            filenames.push_back(entry.path().filename());
+        }
+    }
+
+    // sorting in alphabetical order
+    std::sort(filenames.begin(), filenames.end(),
+              [](const auto &lhs, const auto &rhs) {
+                  return lhs.string() < rhs.string();
+              });
+    return read_one_file(filenames[index].string());
 }
 
 std::vector<InputStructure> FileReader::read_queue_files(const int num) const {

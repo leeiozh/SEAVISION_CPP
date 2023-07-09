@@ -26,7 +26,7 @@ protected:
 
     SpectrumStruct spectrum_struct; // spectrum parameters (m0, m1, peak_period, freq_spectrum)
 
-    Eigen::VectorX<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation (3D)
+    std::vector<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation (3D)
     Eigen::MatrixXd picture; // current curve picture (2D)
 
 public:
@@ -57,7 +57,7 @@ public:
      * calculating Welch transform with half Hanning window
      * @return Welch transform of current Fourier queue
      */
-    [[nodiscard]] Eigen::VectorX<Eigen::MatrixXd> calc_welch() const;
+    [[nodiscard]] Eigen::VectorX<Eigen::MatrixXd> calc_welch(int index) const;
 
     /**
      * calculating main parameters of dispersion curve and spectrum

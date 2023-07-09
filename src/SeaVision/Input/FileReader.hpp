@@ -31,6 +31,8 @@ public:
      */
     [[nodiscard]] InputStructure read_one_file(const std::string &file_name) const;
 
+    [[nodiscard]] InputStructure read_next_file(int index) const;
+
     /**
      * read num files from folder
      * @param num number of reading files (from zero in alphabetical order)
