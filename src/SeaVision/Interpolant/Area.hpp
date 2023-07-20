@@ -5,7 +5,7 @@
 #ifndef SEAVISION_AREA_HPP
 #define SEAVISION_AREA_HPP
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 namespace SeaVision {
 

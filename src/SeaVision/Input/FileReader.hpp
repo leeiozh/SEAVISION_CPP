@@ -33,12 +33,14 @@ public:
 
     [[nodiscard]] InputStructure read_next_file(int index) const;
 
+    InputStructure read_next_file(const std::string &name, int index) const;
+
     /**
      * read num files from folder
      * @param num number of reading files (from zero in alphabetical order)
      * @return vector of structures with read parameters
      */
-    [[nodiscard]] std::vector<InputStructure> read_queue_files(int num = INT_MAX) const;
+    [[nodiscard]] std::vector <InputStructure> read_queue_files(int num = INT_MAX) const;
 
 };
 

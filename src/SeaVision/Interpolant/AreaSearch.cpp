@@ -8,12 +8,12 @@
 namespace SeaVision {
 
 AreaSearch::AreaSearch(const int az_zone) : az_zone(az_zone) {
-    curr_az = -1.;
+    curr_az = 0.;
     curr_az_ind = 0;
 };
 
 
-int AreaSearch::search_area(const std::vector<Eigen::MatrixXi> &data) {
+int AreaSearch::search_area(const std::vector <Eigen::MatrixXi> &data) {
 
     Eigen::MatrixXd std_back = Eigen::MatrixXd::Zero(data[0].rows(), data[0].cols());
 
@@ -60,13 +60,21 @@ int AreaSearch::search_area(const std::vector<Eigen::MatrixXi> &data) {
 
     // if current angle changed significantly then go to it by steps
 
-    if (std::abs(res - curr_az) > 720. / az_zone && curr_az != -1.) {
+    if (std::abs(res - curr_az) > 720. / az_zone) {
         ((res - curr_az) > 0) ? curr_az += 360. / az_zone : curr_az -= 360. / az_zone;
         ((res - curr_az) > 0) ? curr_az_ind += 1 : curr_az_ind -= 1;
+        if (curr_az_ind < 0) curr_az_ind += az_zone;
+        if (curr_az_ind >= az_zone) curr_az_ind -= az_zone;
+        if (curr_az < 0) curr_az += 360.;
+        if (curr_az >= 360.) curr_az -= 360.;
     } else {
         curr_az = res;
     }
 
+    return curr_az_ind;
+}
+
+int AreaSearch::get_curr_az_ind() const {
     return curr_az_ind;
 }
 

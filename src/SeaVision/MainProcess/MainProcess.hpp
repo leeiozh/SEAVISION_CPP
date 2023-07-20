@@ -20,20 +20,24 @@ class MainProcess {
 
 private:
     int index = 0;
-    std::shared_ptr<FileReader> file_reader;
-    std::shared_ptr<AreaSearch> area_search;
-    std::shared_ptr<Mesh> mesh;
-    std::vector<Eigen::MatrixXi> last_back;
-    std::vector<Area> area_vec;
-    std::vector<std::shared_ptr<DispersionCurve>> curve_vec;
+    std::shared_ptr <FileReader> file_reader;
+    std::shared_ptr <AreaSearch> area_search;
+    std::shared_ptr <Mesh> mesh;
+    std::vector <Eigen::MatrixXi> last_back;
+    std::vector <Area> area_vec;
+    std::vector <std::shared_ptr<DispersionCurve>> curve_vec;
+    bool change_std = true;
 
 public:
-    MainProcess(const std::shared_ptr<FileReader>& file_reader, const std::shared_ptr<AreaSearch> &area_search,
-                const std::shared_ptr<Mesh> &mesh, const std::vector<std::shared_ptr<DispersionCurve>> &curve_vec);
+    MainProcess(const std::shared_ptr <FileReader> &file_reader, const std::shared_ptr <AreaSearch> &area_search,
+                const std::shared_ptr <Mesh> &mesh, const std::vector <std::shared_ptr<DispersionCurve>> &curve_vec,
+                bool change_std);
 
     void update(const InputStructure &input);
 
-    std::vector<OutputStructure> run(int num);
+    std::vector <OutputStructure> run(int num);
+
+    OutputStructure run(const std::string &name);
 
     OutputStructure get_out();
 

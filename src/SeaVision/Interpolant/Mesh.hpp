@@ -8,7 +8,7 @@
 #include "Cell.hpp"
 #include "Area.hpp"
 #include "SeaVision/Input/InputStructure.hpp"
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 namespace SeaVision {
 

@@ -3,6 +3,7 @@
 //
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <utility>
 #include "FileReader.hpp"
 #include "SeaVision/Consts.hpp"
@@ -17,6 +18,7 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
     InputStructure res{0, 0, 0, 0, 0, STEP, params.line_size, 4096};
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
+    std::cout << "here " << file_name;
 
     if (file.is_open()) {
 
@@ -26,7 +28,7 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         // check if SP1 with quality 1.875
         if (head[10] != 7) {
             std::stringstream buff;
-            buff << "Not SP1 in " << file_name << std::endl;
+            buff << "Not SP1 in " << file_name;
             throw SeaVisionException(buff.str().c_str());
         }
 
@@ -68,18 +70,19 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         file.close();
     } else {
         std::stringstream buff;
-        buff << "Error with opening a file " << file_name << std::endl;
+        buff << "Error with opening a file " << file_name;
         throw SeaVisionException(buff.str().c_str());
     }
+    std::cout << " success read" << std::endl;
 
     return res;
 
 }
 
 InputStructure FileReader::read_next_file(int index) const {
-    std::vector<std::filesystem::path> filenames;
+    std::vector <std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
-        if (entry.is_regular_file()) {
+        if (entry.is_regular_file() && std::filesystem::file_size(entry) > 1024) {
             filenames.push_back(entry.path().filename());
         }
     }
@@ -92,11 +95,38 @@ InputStructure FileReader::read_next_file(int index) const {
     return read_one_file(filenames[index].string());
 }
 
-std::vector<InputStructure> FileReader::read_queue_files(const int num) const {
+InputStructure FileReader::read_next_file(const std::string &name, int index) const {
+    std::vector <std::filesystem::path> filenames;
+    for (const auto &entry: std::filesystem::directory_iterator{path}) {
+        if (entry.is_regular_file() && entry.path().filename().string()[0] != '.') {
+            filenames.push_back(entry.path().filename());
+        }
+    }
 
-    std::vector<InputStructure> res;
+    // sorting in alphabetical order
+    std::sort(filenames.begin(), filenames.end(),
+              [](const auto &lhs, const auto &rhs) {
+                  return lhs.string() < rhs.string();
+              });
 
-    std::vector<std::filesystem::path> filenames;
+    int start = 0;
+    int name_int = std::stoi(name.substr(9, 6));
+    for (const auto filename: filenames) {
+        if (std::stoi(filename.string().substr(9, 6)) > name_int) {
+            break;
+        } else {
+            start++;
+        }
+    }
+
+    return read_one_file(filenames[start + index].string());
+}
+
+std::vector <InputStructure> FileReader::read_queue_files(const int num) const {
+
+    std::vector <InputStructure> res;
+
+    std::vector <std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
         if (entry.is_regular_file()) {
             filenames.push_back(entry.path().filename());

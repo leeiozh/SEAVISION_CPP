@@ -39,7 +39,7 @@ public:
        *          is in posession of the Exception object. Callers must
        *          not attempt to free the memory.
      */
-    [[nodiscard]] const char *what() const noexcept override;
+    const char *what() const noexcept override;
 };
 
 } // namespace SeaVision

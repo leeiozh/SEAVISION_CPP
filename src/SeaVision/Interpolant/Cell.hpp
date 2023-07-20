@@ -5,7 +5,7 @@
 #ifndef SEAVISION_CELL_HPP
 #define SEAVISION_CELL_HPP
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 namespace SeaVision {
 

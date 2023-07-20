@@ -19,7 +19,7 @@ constexpr double BETA = -1.2;
 constexpr int ROSE_SIZE = 180;
 constexpr double A_COEFF = 0.42975475;
 constexpr double B_COEFF = 4.47947967;
-constexpr int NUM_AREA = 18;
+constexpr int NUM_AREA = 36;
 constexpr int NUM_STD = 4;
 constexpr double STEP = 1.875;
 

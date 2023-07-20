@@ -34,6 +34,8 @@ public:
      */
     int search_area(const std::vector<Eigen::MatrixXi> &data);
 
+    int get_curr_az_ind() const;
+
 };
 
 } // namespace
