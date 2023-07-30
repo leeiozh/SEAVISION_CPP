@@ -85,20 +85,20 @@ Eigen::VectorXd abs(const Eigen::VectorXd &vec) {
     return res;
 }
 
-Eigen::VectorXd trapezoid(const Eigen::MatrixXd &matrix, int start1, int start2) {
+Eigen::VectorXd trapezoid(const Eigen::MatrixXd &matrix, int start, int end) {
     Eigen::VectorXd res = Eigen::VectorXd::Zero(matrix.rows());
-    for (int i = start1; i < matrix.rows(); ++i) {
-        res[i] = 0.;
-        for (int j = start2; j < matrix.cols(); ++j) {
+    for (int i = 0; i < matrix.rows(); ++i) {
+        res[i] = matrix(i, start);
+        for (int j = start + 1; j < matrix.cols() + 1 + end; ++j) {
             res[i] += 0.5 * (matrix(i, j) + matrix(i, j - 1));
         }
     }
     return res;
 }
 
-double trapezoid(const Eigen::VectorXd &vector, int start) {
-    double res = 0.;
-    for (int j = start; j < vector.size(); ++j) {
+double trapezoid(const Eigen::VectorXd &vector, int start, int end) {
+    double res = vector(start);
+    for (int j = start + 1; j < vector.size() + 1 + end; ++j) {
         res += 0.5 * (vector(j) + vector(j - 1));
     }
     return res;

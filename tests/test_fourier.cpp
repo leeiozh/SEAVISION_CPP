@@ -69,7 +69,7 @@ TEST(TEST_WELCH, WELCH) {
         dispersionCurve.update(i, res_back[i]);
     }
 
-    auto wel = dispersionCurve.calc_welch();
+    auto wel = dispersionCurve.calc_welch(1);
     auto res = DispersionCurve::calc_abs_wave_num(wel);
 
     ASSERT_FALSE(std::abs(res(0, 0) - 16080154463906.0) > TOLERANCE);

@@ -41,7 +41,7 @@ OutputStructure MainProcess::run(const std::string &name) {
 
     index = 0;
 
-    for (int i = 0; i < FOUR_NUM + 5; ++i) {
+    for (int i = 0; i < FOUR_NUM + NUM_STD; ++i) {
         InputStructure inp = file_reader->read_next_file(name, index);
         update(inp);
     }

@@ -11,17 +11,22 @@
 namespace SeaVision {
 
 int argumax(const Eigen::VectorXi &vec);
+
 int argumax(const Eigen::VectorXd &vec);
+
 std::pair<int, int> argumax(const Eigen::MatrixXd &mat);
+
 Eigen::VectorXi argumax(const Eigen::MatrixXd &mat, int axis);
 
 Eigen::VectorXd gradient(const Eigen::VectorXi &vec);
+
 Eigen::VectorXd abs(const Eigen::VectorXd &vec);
 
-double trapezoid(const Eigen::VectorXd &matrix, int start = 0);
-Eigen::VectorXd trapezoid(const Eigen::MatrixXd &matrix, int start1 = 0, int start2 = 0);
+double trapezoid(const Eigen::VectorXd &matrix, int start = 0, int end = -1);
 
-Eigen::VectorXd operator *(const Eigen::VectorXd& vec1, const Eigen::VectorXd& vec2); // termwise multiplication
+Eigen::VectorXd trapezoid(const Eigen::MatrixXd &matrix, int start = 0, int end = -1);
+
+Eigen::VectorXd operator*(const Eigen::VectorXd &vec1, const Eigen::VectorXd &vec2); // termwise multiplication
 
 
 } // namespace

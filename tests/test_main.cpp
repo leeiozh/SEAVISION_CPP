@@ -49,33 +49,40 @@ TEST(TEST_MAIN, DATA) {
     auto search = AreaSearch(NUM_AREA);
     Mesh mesh = Mesh(params, STEP);
 
-    auto curr_path = std::filesystem::current_path().string();
+    /*auto curr_path = std::filesystem::current_path().string();
     curr_path = curr_path.substr(0, curr_path.size() - 5);
-    std::cout << curr_path << std::endl;
+    std::cout << curr_path << std::endl;*/
+
+    std::string curr_path = "/storage/kubrick/ezhova/SEAVISION_CPP/";
 
     std::string info_name(curr_path + "resources/for_cpp.csv");
     std::fstream info(info_name, std::ios::in);
     std::ofstream out(curr_path + "results/swh_per.csv");
+    out << "m0,per," << std::endl;
 
     std::vector<std::string> files;
-    int counter = 0;
+    bool start = true;
     if (info.is_open()) {
         std::string line;
         while (getline(info, line)) {
-            std::stringstream str(line);
-            std::string word;
-            int counter = 0;
-            while (getline(str, word, ',')) {
-                counter ++;
-                if (counter == 2){
-                    files.push_back(word);
-                    break;
+            if (start) {
+                start = false;
+            } else {
+                std::stringstream str(line);
+                std::string word;
+                int counter = 0;
+                while (getline(str, word, ',')) {
+                    counter++;
+                    if (counter == 2) {
+                        files.push_back(word);
+                        break;
+                    }
                 }
             }
         }
     }
 
-    for (int i = 0; i < files.size(); ++i){
+    for (int i = 0; i < files.size(); ++i) { // files.size()
 
         std::string date = files[i].substr(0, 4);// + "." + files[i].substr(4, 6);
         date += ".";
@@ -97,15 +104,15 @@ TEST(TEST_MAIN, DATA) {
         OutputStructure res = proc.run(files[i]);
 
 
-        out<< res.m0 << "," << res.per[0] << std::endl;
+        out << res.m0 << "," << res.per[0] << std::endl;
         std::cout << res.m0 << " " << res.per[0] << std::endl;
 
         std::ofstream out2(curr_path + "results/freq_spec" + std::to_string(i) + ".csv");
         for (double j: res.freq_spec) {
             out2 << j << ",";
         }
-        }
     }
+}
 
 } // namespace
 
