@@ -8,11 +8,11 @@
 
 namespace SeaVision {
 
-/*TEST(TEST_MAIN, MAIN) {
+TEST(TEST_MAIN, MAIN) {
 
     const int num_t = FOUR_NUM;
 
-    std::string path("/storage/tartar/DATA/RADAR/src/2022.10.09/");
+    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.04/");
     ReadParameters params{0, 720, 720};
     FileReader reader(path, params);
     auto search = AreaSearch(NUM_AREA);
@@ -23,23 +23,22 @@ namespace SeaVision {
     curve_vec[0] = curve;
 
     MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<AreaSearch>(search),
-                     std::make_shared<Mesh>(mesh), curve_vec);
+                     std::make_shared<Mesh>(mesh), curve_vec, true);
 
     std::vector<OutputStructure> res = proc.run(40);
 
     int i = 0;
     for (auto &r: res) {
         std::cout << r.swh[0] << " " << r.per[0] << std::endl;
-
         if (i % 10 == 0) {
-            std::ofstream out("/storage/kubrick/ezhova/seavisionCPP/SeaVision/results/freq_spec_" + std::to_string(i) + ".csv");
+            std::ofstream out("/home/leeiozh/ocean/seavisionCPP/freq_spec_" + std::to_string(i) + ".csv");
             for (double j: r.freq_spec) {
                 out << j << ",";
             }
         }
         i += 1;
     }
-}*/
+}
 
 
 TEST(TEST_MAIN, DATA) {
@@ -119,4 +118,54 @@ TEST(TEST_MAIN, DATA) {
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
+}
+
+namespace SeaVision {
+
+TEST(TEST_MAIN, INFO) {
+    const int num_t = FOUR_NUM;
+
+    std::string path("/storage/tartar/DATA/RADAR/src/");
+
+    std::string info("/home/leeiozh/ocean/seavisionCPP/SeaVision/resources/for_cpp.csv");
+    std::fstream file(info, std::ios::in);
+    if (file.is_open()) {
+        std::string line;
+        while (getline(file, line)) {
+
+            std::stringstream str(line);
+            std::string word;
+
+            while (getline(str, word, ','))
+                std::cout << word << std::endl;
+        }
+    }
+/*
+    ReadParameters params{0, 720, 720};
+    FileReader reader(path, params);
+    auto search = AreaSearch(NUM_AREA);
+    Mesh mesh = Mesh(params, STEP);
+
+    auto curve = std::make_shared<DispersionCurve>(num_t, 10, 32, K_MAX);
+    auto curve_vec = std::vector<std::shared_ptr<DispersionCurve>>(1);
+    curve_vec[0] = curve;
+
+    MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<AreaSearch>(search),
+                     std::make_shared<Mesh>(mesh), curve_vec);
+
+    std::vector<OutputStructure> res = proc.run(60);
+
+    int i = 0;
+    for (auto &r: res) {
+        std::cout << r.swh[0] << " " << r.per[0] << std::endl;
+
+        if (i % 10 == 0) {
+            std::ofstream out("/home/leeiozh/ocean/seavisionCPP/freq" + std::to_string(i) + ".csv");
+            for (double j: r.freq_spec) {
+                out << j << ",";
+            }
+        }
+        i += 1;
+    }*/
+}
 }

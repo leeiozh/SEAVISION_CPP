@@ -128,7 +128,7 @@ std::vector <InputStructure> FileReader::read_queue_files(const int num) const {
 
     std::vector <std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
-        if (entry.is_regular_file()) {
+        if (entry.is_regular_file() && std::filesystem::file_size(entry) > 1) {
             filenames.push_back(entry.path().filename());
         }
     }

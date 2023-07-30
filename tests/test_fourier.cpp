@@ -69,12 +69,12 @@ TEST(TEST_WELCH, WELCH) {
         dispersionCurve.update(i, res_back[i]);
     }
 
-    auto wel = dispersionCurve.calc_welch(1);
+    auto wel = dispersionCurve.calc_welch(num_t - 1);
     auto res = DispersionCurve::calc_abs_wave_num(wel);
 
-    ASSERT_FALSE(std::abs(res(0, 0) - 16080154463906.0) > TOLERANCE);
-    ASSERT_FALSE(std::abs(res(0, 1) - 54965824852787.0) > TOLERANCE);
-    ASSERT_FALSE(std::abs(res(1, 0) - 42021925559540.0) > TOLERANCE);
+    ASSERT_FALSE(std::abs(res(0, 0) - 15562655215635.0) > TOLERANCE);
+    ASSERT_FALSE(std::abs(res(0, 1) - 52843662225296.0) > TOLERANCE);
+    ASSERT_FALSE(std::abs(res(1, 0) - 41702768062952.0) > TOLERANCE);
 
     /*std::ofstream out2("/home/leeiozh/ocean/seavisionCPP/test_four_real.csv");
 

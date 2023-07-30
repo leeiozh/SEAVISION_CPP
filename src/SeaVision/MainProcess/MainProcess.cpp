@@ -53,10 +53,12 @@ void MainProcess::update(const InputStructure &input) {
 
     last_back[index % NUM_STD] = input.bcksctr;
     int std_ang = 0;
+    int new_ang = 0;
 
     if (index >= NUM_STD) {
         if (change_std) {
             std_ang = area_search->search_area(last_back);
+            new_ang = area_search->search_dir(last_back[NUM_STD - 1]);
         } else {
             if (index == NUM_STD) {
                 std_ang = area_search->search_area(last_back);
@@ -72,7 +74,7 @@ void MainProcess::update(const InputStructure &input) {
         curve_vec[0]->update(index, inp_back);
     }
 
-    std::cout << " " << index << " " << std_ang << " ";
+    std::cout << " " << index << " " << std_ang << " " << new_ang << " ";
     //if (index % 32 == 0) std::cout << "% 32 " << static_cast<double>(index) / static_cast<double>(FOUR_NUM) * 100 << std::endl;
     if (index >= FOUR_NUM + NUM_STD) std::cout << "next " << index << std::endl;
 

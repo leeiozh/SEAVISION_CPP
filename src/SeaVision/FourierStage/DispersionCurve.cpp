@@ -278,7 +278,7 @@ void DispersionCurve::calc_curve() {
     }*/
 
     for (int i = 1; i < signal.rows(); ++i) { // calculating a spectrum
-        if (i < 15 || i > signal.rows() / 2) {
+        if (i < 15 || i > signal.rows() / 2) { ////////////////////////////////////////////////////////////////BADBDBABD
             ss[i] = 0.;
         }
         spectrum_struct.freq_spec[i] = ss[i] / nn[i];

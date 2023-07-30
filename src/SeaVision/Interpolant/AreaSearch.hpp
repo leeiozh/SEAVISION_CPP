@@ -7,6 +7,7 @@
 
 #include <Eigen/Dense>
 #include "SeaVision/Input/InputStructure.hpp"
+#include "SeaVision/MainProcess/Math.hpp"
 
 namespace SeaVision {
 
@@ -34,7 +35,9 @@ public:
      */
     int search_area(const std::vector<Eigen::MatrixXi> &data);
 
-    int get_curr_az_ind() const;
+    int search_dir(const Eigen::MatrixXi& data);
+
+    [[nodiscard]] int get_curr_az_ind() const;
 
 };
 
