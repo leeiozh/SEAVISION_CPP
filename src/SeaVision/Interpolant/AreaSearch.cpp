@@ -11,6 +11,8 @@ namespace SeaVision {
 AreaSearch::AreaSearch(const int az_zone) : az_zone(az_zone) {
     curr_az = 0.;
     curr_az_ind = 0;
+    rose.resize(az_zone);
+    curr_std = 0.;
 };
 
 
@@ -81,29 +83,38 @@ int AreaSearch::search_dir(const Eigen::MatrixXi &data) {
     Eigen::VectorXd disp = Eigen::VectorXd::Zero(NUM_AREA);
 
     for (int i = 0; i < NUM_AREA; ++i) {
-        Eigen::MatrixXi trim = data.block( 360, i * height, 360, height);
+        int start_col = i * height - static_cast<int>(height / 4.);
+        int block_cols = static_cast<int>(6. * static_cast<double>(height) / 4.);
+        if (i == 0) start_col = 0;
+        if ((i + 1) == NUM_AREA) block_cols = static_cast<int>(5. * static_cast<double>(height) / 4.);
+
+        Eigen::MatrixXi trim = data.block(360, start_col, 360, block_cols);
+
         Eigen::VectorXd sum = Eigen::VectorXd::Zero(trim.rows());
 
-        for (int j = 0; j < trim.rows(); ++j){
+        for (int j = 0; j < trim.rows(); ++j) {
             sum[j] = trim.row(j).sum();
         }
 
-        if (i == 29) {
-            std::ofstream out("/home/leeiozh/ocean/seavisionCPP/sum" + std::to_string(data(256, 256)) + ".csv");
-            for (double g: sum) {
-                out << g << ",";
-            }
-        }
-
-        disp[i] = (sum - sum.mean() * Eigen::VectorXd::Ones(sum.size())).norm();
+        disp[i] = (sum - sum.mean() * Eigen::VectorXd::Ones(sum.size())).norm() / static_cast<double>(trim.size());
     }
 
-    return argumax(disp);
+    rose = disp;
 
+    curr_std = argumax(disp);
+    return curr_std;
+}
+
+Eigen::VectorXd AreaSearch::get_rose() const {
+    return rose;
 }
 
 int AreaSearch::get_curr_az_ind() const {
     return curr_az_ind;
+}
+
+int AreaSearch::get_curr_std() const {
+    return curr_std;
 }
 
 

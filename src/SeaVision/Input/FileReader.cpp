@@ -111,7 +111,7 @@ InputStructure FileReader::read_next_file(const std::string &name, int index) co
 
     int start = 0;
     int name_int = std::stoi(name.substr(9, 6));
-    for (const auto filename: filenames) {
+    for (const auto &filename: filenames) {
         if (std::stoi(filename.string().substr(9, 6)) > name_int) {
             break;
         } else {

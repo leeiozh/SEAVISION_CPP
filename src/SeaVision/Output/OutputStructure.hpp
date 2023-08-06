@@ -18,6 +18,7 @@ struct OutputStructure {
     Eigen::Vector3d len = Eigen::Vector3d::Zero();
 
     double m0 = 0.; // DELETE!!!
+    double vcos = 0.; // DELETE!!!
 
     Eigen::VectorXd freq_spec = Eigen::VectorXd::Zero(FOUR_NUM);
     Eigen::VectorXd rose = Eigen::VectorXd::Zero(ROSE_SIZE);

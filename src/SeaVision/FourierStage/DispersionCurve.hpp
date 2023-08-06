@@ -44,7 +44,7 @@ public:
      * @param index current index
      * @param data current backscatter
      */
-    void update(int index, const Eigen::MatrixXd &data);
+    void update(int index, const Eigen::MatrixXd &data, std::string name);
 
     /**
      * calculating Fourier stage
@@ -62,7 +62,7 @@ public:
     /**
      * calculating main parameters of dispersion curve and spectrum
      */
-    void calc_curve();
+    void calc_curve(std::string name);
 
     /**
      * calculating coefficient in \omega = \sqrt{gk} + k vcosalpha using weighted least squares

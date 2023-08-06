@@ -12,7 +12,7 @@ namespace SeaVision {
 
 struct SpectrumStruct {
     double m0 = 0.;
-    double m1 = 0.;
+    double vcosalpha = 0.;
     double peak_period = 0.;
     Eigen::VectorXd freq_spec = Eigen::VectorXd::Zero(FOUR_NUM);
 

@@ -15,7 +15,7 @@ DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double
     data_fourier.resize(max_index);
 }
 
-void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
+void DispersionCurve::update(const int index, const Eigen::MatrixXd &data, std::string name) {
     if (index < FOUR_NUM) {
         data_fourier[index] = calc_fourier_2d_one(data);
     } else {
@@ -23,7 +23,7 @@ void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
         auto welch = calc_welch(index);
         picture = calc_abs_wave_num(welch);
         picture /= picture.maxCoeff();
-        calc_curve();
+        calc_curve(name);
     }
 }
 
@@ -165,7 +165,7 @@ Eigen::MatrixXd DispersionCurve::calc_abs_wave_num(const Eigen::VectorX<Eigen::M
     return res;
 }
 
-void DispersionCurve::calc_curve() {
+void DispersionCurve::calc_curve(std::string name) {
 
     // mirroring
     int half_size = static_cast<int>(picture.rows()) / 2;
@@ -223,11 +223,13 @@ void DispersionCurve::calc_curve() {
         vcosalpha = calc_vcosalpha(max_freq_masked, k_num_vec, sigma_vec); // fitted coefficient
     }
 
+    spectrum_struct.vcosalpha = vcosalpha;
+
     std::cout << "vcos " << vcosalpha << std::endl;
     Eigen::MatrixXd noise = Eigen::MatrixXd(picture); // there we cut area around dispersion curve
 
-    /*std::ofstream out5("/storage/kubrick/ezhova/SEAVISION_CPP/results/left_mark.csv");///////////////
-    std::ofstream out6("/storage/kubrick/ezhova/SEAVISION_CPP/results/right_mark.csv");//////////////*/
+    std::ofstream out5("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + "left_mark.csv");///////////////
+    std::ofstream out6("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + "right_mark.csv");//////////////
 
     for (int k = 0; k < picture.cols(); ++k) { // loop for columns
 
@@ -242,8 +244,8 @@ void DispersionCurve::calc_curve() {
             noise.col(k).segment(left, right - left).setZero(); // zeroing signal
         }
 
-        /*out5 << left << ",";
-        out6 << right << ",";*/
+        out5 << left << ",";
+        out6 << right << ",";
 
         // analogically for mirroring part
         freq *= -1;
@@ -278,7 +280,7 @@ void DispersionCurve::calc_curve() {
     }*/
 
     for (int i = 1; i < signal.rows(); ++i) { // calculating a spectrum
-        if (i < 15 || i > signal.rows() / 2) { ////////////////////////////////////////////////////////////////BADBDBABD
+        if (i < 15 || i > signal.rows() / 2) { ///////////////////////////////////////////////////////// TODO BAD
             ss[i] = 0.;
         }
         spectrum_struct.freq_spec[i] = ss[i] / nn[i];
@@ -289,18 +291,13 @@ void DispersionCurve::calc_curve() {
 
     spectrum_struct.m0 = trapezoid(ss, 5, -1) / trapezoid(nn, 5, -1); // calculating zeroth momentum
 
-    Eigen::VectorXd freq_vec = Eigen::VectorXd::Zero(ss.size());
-    freq_vec.setLinSpaced(0., 1 / TURN_PERIOD);
-    spectrum_struct.m1 = trapezoid(ss * freq_vec) / trapezoid(nn * freq_vec); // calculating first momentum
-
-    /*std::ofstream out2("/storage/kubrick/ezhova/SEAVISION_CPP/results/test_curve.csv");
+    std::ofstream out2("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + "test_curve.csv");
     for (int i = 0; i < picture.rows(); ++i) {
         for (int j = 0; j < picture.cols(); ++j) {
             out2 << picture(i, j) << ",";
         }
         out2 << std::endl;
-    }*/
-
+    }
 }
 
 SpectrumStruct DispersionCurve::get_params() {

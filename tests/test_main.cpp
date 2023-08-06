@@ -8,7 +8,7 @@
 
 namespace SeaVision {
 
-TEST(TEST_MAIN, MAIN) {
+/*TEST(TEST_MAIN, MAIN) {
 
     const int num_t = FOUR_NUM;
 
@@ -38,7 +38,7 @@ TEST(TEST_MAIN, MAIN) {
         }
         i += 1;
     }
-}
+}*/
 
 
 TEST(TEST_MAIN, DATA) {
@@ -57,7 +57,7 @@ TEST(TEST_MAIN, DATA) {
     std::string info_name(curr_path + "resources/for_cpp.csv");
     std::fstream info(info_name, std::ios::in);
     std::ofstream out(curr_path + "results/swh_per.csv");
-    out << "m0,per," << std::endl;
+    out << "name,m0,per,dir,vcos," << std::endl;
 
     std::vector<std::string> files;
     bool start = true;
@@ -102,12 +102,11 @@ TEST(TEST_MAIN, DATA) {
 
         OutputStructure res = proc.run(files[i]);
 
+        out << files[i] << "," << res.m0 << "," << res.per[0] << "," << res.dir[0] << "," << res.vcos << std::endl;
+        std::cout << files[i] << " " << res.m0 << " " << res.per[0] << " " << res.dir[0] << " " << res.vcos << std::endl;
 
-        out << res.m0 << "," << res.per[0] << std::endl;
-        std::cout << res.m0 << " " << res.per[0] << std::endl;
-
-        std::ofstream out2(curr_path + "results/freq_spec" + std::to_string(i) + ".csv");
-        for (double j: res.freq_spec) {
+        std::ofstream out2(curr_path + "results/rose" + std::to_string(i) + ".csv");
+        for (double j: res.rose) {
             out2 << j << ",";
         }
     }
@@ -120,7 +119,7 @@ int main(int argc, char **argv) {
     return RUN_ALL_TESTS();
 }
 
-namespace SeaVision {
+/*namespace SeaVision {
 
 TEST(TEST_MAIN, INFO) {
     const int num_t = FOUR_NUM;
@@ -140,7 +139,7 @@ TEST(TEST_MAIN, INFO) {
                 std::cout << word << std::endl;
         }
     }
-/*
+
     ReadParameters params{0, 720, 720};
     FileReader reader(path, params);
     auto search = AreaSearch(NUM_AREA);
@@ -166,6 +165,6 @@ TEST(TEST_MAIN, INFO) {
             }
         }
         i += 1;
-    }*/
+    }
 }
-}
+}*/
