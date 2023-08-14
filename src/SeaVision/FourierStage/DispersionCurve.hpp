@@ -5,10 +5,10 @@
 #ifndef SEAVISION_DISPERSIONCURVE_HPP
 #define SEAVISION_DISPERSIONCURVE_HPP
 
-#include "SpectrumStructure.hpp"
-#include "SeaVision/Consts.hpp"
 #include <Eigen/Dense>
 #include <fftw3.h>
+#include "SeaVision/Structures.hpp"
+#include "SeaVision/Consts.hpp"
 
 namespace SeaVision {
 
@@ -24,7 +24,7 @@ protected:
     int max_index = FOUR_NUM; // size of array for spectrum calculation
     double max_wave_num = K_MAX; // maximum wave number
 
-    SpectrumStruct spectrum_struct; // spectrum parameters (m0, m1, peak_period, freq_spectrum)
+    WaveStruct spectrum_struct; // spectrum parameters (m0, m1, peak_period, freq_spectrum)
 
     std::vector<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation (3D)
     Eigen::MatrixXd picture; // current curve picture (2D)
@@ -62,7 +62,16 @@ public:
     /**
      * calculating main parameters of dispersion curve and spectrum
      */
-    void calc_curve(std::string name);
+    void calc_curve(std::string name); // TODO remove name
+
+    /**
+     * process one curve on dispersion portrait
+     * @param pic dispersion portrait (this.picture or minus previous signal)
+     * @param times times that the function is called (from 0)
+     * @param name TODO remove
+     * @return pair arrays of signal and noise
+     */
+    std::pair<Eigen::MatrixXd, Eigen::MatrixXd> proc_one_curve(const Eigen::MatrixXd &pic, int times, std::string name);
 
     /**
      * calculating coefficient in \omega = \sqrt{gk} + k vcosalpha using weighted least squares
@@ -91,7 +100,7 @@ public:
      * getter of spectrum wave parameters
      * @return structure with zeroth and first momentum, period of spectrum peak, frequency spectrum
      */
-    SpectrumStruct get_params();
+    WaveStruct get_params();
 
 };
 

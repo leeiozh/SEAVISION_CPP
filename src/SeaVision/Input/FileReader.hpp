@@ -6,7 +6,7 @@
 #define SEAVISION_FILEREADER_HPP
 
 #include <string>
-#include "InputStructure.hpp"
+#include "SeaVision/Structures.hpp"
 
 namespace SeaVision {
 

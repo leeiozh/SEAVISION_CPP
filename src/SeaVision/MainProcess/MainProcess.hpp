@@ -9,10 +9,9 @@
 #include <memory>
 #include "SeaVision/Input/FileReader.hpp"
 #include "SeaVision/Interpolant/Mesh.hpp"
-#include "SeaVision/Interpolant/AreaSearch.hpp"
-#include "SeaVision/Input/InputStructure.hpp"
+#include "SeaVision/DispersionStage/DispersionDirect.hpp"
 #include "SeaVision/FourierStage/DispersionCurve.hpp"
-#include "SeaVision/Output/OutputStructure.hpp"
+#include "SeaVision/Structures.hpp"
 
 namespace SeaVision {
 
@@ -20,14 +19,18 @@ class MainProcess {
 
 private:
     int index = 0; // index of current shot
-    double hgd = 0.; // current course from vessel gyroscope
+    Eigen::VectorXd hgd; // current course from vessel gyroscope
+    Eigen::VectorXd speed; // current speed from vessel gyroscope
     std::shared_ptr<FileReader> file_reader; // pointer on file reader
-    std::shared_ptr<AreaSearch> area_search; // pointer on area searcher
+    std::shared_ptr<DispersionDirect> disp_direct; // pointer on area searcher
     std::shared_ptr<Mesh> mesh; // pointer on mesh
     std::vector<Eigen::MatrixXi> last_back; // saved last STD_NUM backscatters
     std::vector<Area> area_vec; // vector of areas for speedy computations
-    std::vector<std::shared_ptr<DispersionCurve>> curve_vec; // vector of pointers on fourier stuff (3)
+    std::shared_ptr<DispersionCurve> curve; // pointer on fourier stuff
     bool change_std = true; // if false then we do not change place of clearly data (using for comparing with other short measurements)
+
+    Eigen::VectorXi dir_vec;
+    std::vector<OutputStructure> mean_output;
 
 public:
     /**
@@ -35,11 +38,11 @@ public:
      * @param file_reader pointer on file reader
      * @param area_search  pointer on area searcher
      * @param mesh pointer on mesh
-     * @param curve_vec vector of pointers on fourier stuff (3)
+     * @param curve_vec pointer on fourier stuff
      * @param change_std if false then we do not change place of clearly data (using for comparing with other short measurements)
      */
-    MainProcess(const std::shared_ptr<FileReader> &file_reader, const std::shared_ptr<AreaSearch> &area_search,
-                const std::shared_ptr<Mesh> &mesh, const std::vector<std::shared_ptr<DispersionCurve>> &curve_vec,
+    MainProcess(const std::shared_ptr<FileReader> &file_reader, const std::shared_ptr<DispersionDirect> &area_search,
+                const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<DispersionCurve> &curve,
                 bool change_std);
 
     /**
@@ -68,7 +71,11 @@ public:
      * getter of last results
      * @return OutputStructure with results
      */
-    OutputStructure get_out();
+    OutputStructure make_output();
+
+    OutputStructure get_mean_output();
+
+    static int get_median_direction(const Eigen::VectorXi &dir_ind, bool change_mean);
 
 };
 

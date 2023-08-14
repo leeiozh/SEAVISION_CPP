@@ -19,6 +19,28 @@ int argumax(const Eigen::VectorXi &vec) {
     return res;
 }
 
+Eigen::VectorXi argumax(const Eigen::VectorXd &vec, int num, int window){
+    Eigen::VectorXi res = Eigen::VectorXi::Zero(num);
+    auto copy = Eigen::VectorXd(vec);
+    for (int i = 0; i < num; ++i){
+        res[i] = argumax(copy);
+
+        if (res[i] - window > 0){
+            copy.segment(res[i] - window, window).setZero();
+        } else {
+            copy.segment(0, res[i]).setZero();
+            copy.segment(copy.size() - window + res[i], window - res[i]).setZero();
+        }
+        if (res[i] + window < vec.size()){
+            copy.segment(res[i], window).setZero();
+        } else {
+            copy.segment(res[i], vec.size() - res[i]).setZero();
+            copy.segment(0, window - vec.size() + res[i]).setZero();
+        }
+    }
+    return res;
+}
+
 int argumax(const Eigen::VectorXd &vec) {
     int res = 0;
     double max = vec[0];
@@ -27,6 +49,15 @@ int argumax(const Eigen::VectorXd &vec) {
             res = i;
             max = vec[i];
         }
+    }
+    return res;
+}
+
+int count_zeros_mean(const Eigen::VectorXd &vec) {
+    Eigen::VectorXd vec_min_mean = vec - vec.mean() * Eigen::VectorXd::Ones(vec.size());
+    int res = 0;
+    for (int i = 1; i < vec_min_mean.size(); ++i) {
+        if (vec_min_mean[i] * vec_min_mean[i - 1] < 0) res++;
     }
     return res;
 }

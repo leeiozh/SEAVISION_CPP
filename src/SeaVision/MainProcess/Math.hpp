@@ -14,7 +14,11 @@ int argumax(const Eigen::VectorXi &vec);
 
 int argumax(const Eigen::VectorXd &vec);
 
+int count_zeros_mean(const Eigen::VectorXd &vec);
+
 std::pair<int, int> argumax(const Eigen::MatrixXd &mat);
+
+Eigen::VectorXi argumax(const Eigen::VectorXd &vec, int num, int window);
 
 Eigen::VectorXi argumax(const Eigen::MatrixXd &mat, int axis);
 

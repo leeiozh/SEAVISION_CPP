@@ -5,7 +5,7 @@
 #ifndef SEAVISION_INPUTPROCESSOR_HPP
 #define SEAVISION_INPUTPROCESSOR_HPP
 
-#include "InputStructure.hpp"
+#include "../Structures.hpp"
 #include <string>
 
 namespace SeaVision {

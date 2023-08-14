@@ -42,10 +42,9 @@ namespace SeaVision {
 
 
 TEST(TEST_MAIN, DATA) {
-    const int num_t = FOUR_NUM;
     std::string path("/storage/tartar/DATA/RADAR/src/");
-    ReadParameters params{0, 720, 720};
-    auto search = AreaSearch(NUM_AREA);
+    ReadParameters params{0, AREA_SIZE, AREA_SIZE};
+    auto disp_direct = DispersionDirect(NUM_AREA);
     Mesh mesh = Mesh(params, STEP);
 
     /*auto curr_path = std::filesystem::current_path().string();
@@ -57,7 +56,7 @@ TEST(TEST_MAIN, DATA) {
     std::string info_name(curr_path + "resources/for_cpp.csv");
     std::fstream info(info_name, std::ios::in);
     std::ofstream out(curr_path + "results/swh_per.csv");
-    out << "name,m0,per,dir,vcos," << std::endl;
+    out << "name,m01,m02,m03,per1,per2,per3,dir1,dir2,dir3,len1,len2,len3,vcos1,vcos2,vcos3," << std::endl;
 
     std::vector<std::string> files;
     bool start = true;
@@ -93,22 +92,36 @@ TEST(TEST_MAIN, DATA) {
 
         FileReader reader(path + date, params);
 
-        auto curve = std::make_shared<DispersionCurve>(num_t, 10, 32, K_MAX);
-        auto curve_vec = std::vector<std::shared_ptr<DispersionCurve>>(1);
-        curve_vec[0] = curve;
+        auto curve = std::make_shared<DispersionCurve>(FOUR_NUM, DELTA_FREQ, CUT_NUM, K_MAX);
 
-        MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<AreaSearch>(search),
-                         std::make_shared<Mesh>(mesh), curve_vec, false);
+        MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<DispersionDirect>(disp_direct),
+                         std::make_shared<Mesh>(mesh), curve, true);
 
         OutputStructure res = proc.run(files[i]);
 
-        out << files[i] << "," << res.m0 << "," << res.per[0] << "," << res.dir[0] << "," << res.vcos << std::endl;
-        std::cout << files[i] << " " << res.m0 << " " << res.per[0] << " " << res.dir[0] << " " << res.vcos << std::endl;
+        out << files[i] << ","
+            << res.m0[0] << "," << res.m0[1] << "," << res.m0[2] << ","
+            << res.per[0] << "," << res.per[1] << "," << res.per[2] << ","
+            << res.dir[0] << "," << res.dir[1] << "," << res.dir[2] << ","
+            << res.len[0] << "," << res.len[1] << "," << res.len[2] << ","
+            << res.vcos[0] << "," << res.vcos[1] << "," << res.vcos[2] << "," << std::endl;
+
+        std::cout << files[i] << "\n"
+                  << " m0 " << res.m0[0] << " " << res.m0[1] << " " << res.m0[2] << " "
+                  << " per " << res.per[0] << " " << res.per[1] << " " << res.per[2] << " "
+                  << " dir " << res.dir[0] << " " << res.dir[1] << " " << res.dir[2] << " "
+                  << " len " << res.len[0] << " " << res.len[1] << " " << res.len[2] << " "
+                  << " vcos " << res.vcos[0] << " " << res.vcos[1] << " " << res.vcos[2] << " " << std::endl;
 
         std::ofstream out2(curr_path + "results/rose" + std::to_string(i) + ".csv");
         for (double j: res.rose) {
             out2 << j << ",";
         }
+
+        /*std::ofstream out22(curr_path + "results/freq_spec" + std::to_string(i) + ".csv");
+        for (double j: res.freq_spec) {
+            out22 << j << ",";
+        }*/
     }
 }
 

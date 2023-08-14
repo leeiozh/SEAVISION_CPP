@@ -5,10 +5,10 @@
 #ifndef SEAVISION_MESH_HPP
 #define SEAVISION_MESH_HPP
 
+#include <Eigen/Dense>
 #include "Cell.hpp"
 #include "Area.hpp"
-#include "SeaVision/Input/InputStructure.hpp"
-#include <Eigen/Dense>
+#include "SeaVision/Structures.hpp"
 
 namespace SeaVision {
 

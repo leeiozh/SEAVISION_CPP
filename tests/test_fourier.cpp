@@ -7,8 +7,8 @@
 #include "SeaVision/Input/FileReader.hpp"
 #include "SeaVision/Interpolant/Mesh.hpp"
 #include "SeaVision/FourierStage/DispersionCurve.hpp"
-#include "SeaVision/FourierStage/SpectrumStructure.hpp"
-#include "SeaVision/Interpolant/AreaSearch.hpp"
+#include "SeaVision/Structures.hpp"
+#include "SeaVision/DispersionStage/DispersionDirect.hpp"
 #include "gtest/gtest.h"
 
 const double TOLERANCE = 1.;
