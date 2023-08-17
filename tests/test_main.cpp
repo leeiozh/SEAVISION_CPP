@@ -91,13 +91,14 @@ TEST(TEST_MAIN, DATA) {
         std::cout << "folder " << date << std::endl;
 
         FileReader reader(path + date, params);
+        OutputProcessor output("192.104.100.10", 4000);
 
         auto curve = std::make_shared<DispersionCurve>(FOUR_NUM, DELTA_FREQ, CUT_NUM, K_MAX);
 
-        MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<DispersionDirect>(disp_direct),
-                         std::make_shared<Mesh>(mesh), curve, true);
+        MainProcess proc(std::make_shared<FileReader>(reader), std::make_shared<OutputProcessor>(output),
+                         std::make_shared<DispersionDirect>(disp_direct), std::make_shared<Mesh>(mesh), curve);
 
-        OutputStructure res = proc.run(files[i]);
+        OutputStructure res = proc.run_debug();
 
         out << files[i] << ","
             << res.m0[0] << "," << res.m0[1] << "," << res.m0[2] << ","

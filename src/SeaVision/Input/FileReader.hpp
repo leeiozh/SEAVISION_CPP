@@ -6,6 +6,12 @@
 #define SEAVISION_FILEREADER_HPP
 
 #include <string>
+#include <filesystem>
+#include <fstream>
+#include <utility>
+#include <iostream>
+#include "SeaVision/Consts.hpp"
+#include "SeaVision/SeaVisionBaseException.hpp"
 #include "SeaVision/Structures.hpp"
 
 namespace SeaVision {

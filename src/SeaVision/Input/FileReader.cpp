@@ -1,13 +1,8 @@
 //
 // Created by leeiozh on 6/13/23.
 //
-#include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <utility>
+
 #include "FileReader.hpp"
-#include "SeaVision/Consts.hpp"
-#include "SeaVision/SeaVisionBaseException.hpp"
 
 namespace SeaVision {
 
@@ -18,7 +13,6 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
     InputStructure res{0, 0, 0, 0, 0, STEP, params.line_size, 4096};
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
-    std::cout << "here " << file_name;
 
     if (file.is_open()) {
 
@@ -73,18 +67,23 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         buff << "Error with opening a file " << file_name;
         throw SeaVisionException(buff.str().c_str());
     }
-    std::cout << " success read" << std::endl;
 
     return res;
-
 }
 
 InputStructure FileReader::read_next_file(int index) const {
-    std::vector <std::filesystem::path> filenames;
+    std::vector<std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
         if (entry.is_regular_file() && std::filesystem::file_size(entry) > 1024) {
             filenames.push_back(entry.path().filename());
         }
+    }
+
+    if (index > filenames.size()) {
+        std::stringstream buff;
+        buff << "Not enough files in " << path << ". Number of files in folder is " << filenames.size()
+             << ", but requested index is " << index;
+        throw SeaVisionException(buff.str().c_str());
     }
 
     // sorting in alphabetical order
@@ -96,7 +95,7 @@ InputStructure FileReader::read_next_file(int index) const {
 }
 
 InputStructure FileReader::read_next_file(const std::string &name, int index) const {
-    std::vector <std::filesystem::path> filenames;
+    std::vector<std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
         if (entry.is_regular_file() && entry.path().filename().string()[0] != '.') {
             filenames.push_back(entry.path().filename());
@@ -122,11 +121,11 @@ InputStructure FileReader::read_next_file(const std::string &name, int index) co
     return read_one_file(filenames[start + index].string());
 }
 
-std::vector <InputStructure> FileReader::read_queue_files(const int num) const {
+std::vector<InputStructure> FileReader::read_queue_files(const int num) const {
 
-    std::vector <InputStructure> res;
+    std::vector<InputStructure> res;
 
-    std::vector <std::filesystem::path> filenames;
+    std::vector<std::filesystem::path> filenames;
     for (const auto &entry: std::filesystem::directory_iterator{path}) {
         if (entry.is_regular_file() && std::filesystem::file_size(entry) > 1) {
             filenames.push_back(entry.path().filename());

@@ -3,16 +3,17 @@
 //
 
 #include <iostream>
+#include <chrono>
 #include "MainProcess.hpp"
 
 namespace SeaVision {
 
-MainProcess::MainProcess(const std::shared_ptr<FileReader> &file_reader,
+MainProcess::MainProcess(const std::shared_ptr<InputProcessor> &inp_proc,
+                         const std::shared_ptr<OutputProcessor> &output_proc,
                          const std::shared_ptr<DispersionDirect> &area_search,
                          const std::shared_ptr<Mesh> &mesh,
-                         const std::shared_ptr<DispersionCurve> &curve, bool change_std) :
-        file_reader(file_reader), disp_direct(area_search), mesh(mesh), curve(curve),
-        change_std(change_std) {
+                         const std::shared_ptr<DispersionCurve> &curve) :
+        inp_proc(inp_proc), output_proc(output_proc), disp_direct(area_search), mesh(mesh), curve(curve) {
     mean_output.resize(MEAN);
     last_back.resize(NUM_STD);
     area_vec.resize(NUM_AREA);
@@ -21,68 +22,140 @@ MainProcess::MainProcess(const std::shared_ptr<FileReader> &file_reader,
     speed.resize(MEAN);
     for (int i = 0; i < NUM_AREA; ++i) {
         double angle = -static_cast<double >(i) / static_cast<double>(NUM_AREA) * 360.;
-        area_vec[i] = Area(720, 720, -angle, angle, 840);
+        area_vec[i] = Area(AREA_SIZE, AREA_SIZE, -angle, angle, 840);
     }
 }
 
-std::vector<OutputStructure> MainProcess::run(int num, const std::string &name) {
+/*std::vector<OutputStructure> MainProcess::run_debug(int num) {
 
     index = 0;
     for (int i = 0; i < FOUR_NUM; ++i) {
         InputStructure inp = file_reader->read_next_file(index);
-        update(inp, name);
+        update(inp);
     }
 
     std::vector<OutputStructure> res(num);
     for (int i = 0; i < num; ++i) {
         InputStructure inp = file_reader->read_next_file(index);
-        update(inp, name);
+        update(inp);
         res[i] = get_mean_output();
     }
     return res;
 }
 
-OutputStructure MainProcess::run(const std::string &name) {
+OutputStructure MainProcess::run_debug() {
 
     index = 0;
 
     for (int i = 0; i < FOUR_NUM + 2 * MEAN; ++i) {
-        InputStructure inp = file_reader->read_next_file(name, index);
-        update(inp, name);
+        InputStructure inp = file_reader->read_next_file(index);
+        update(inp);
     }
 
     return get_mean_output();
+}*/
+
+void MainProcess::run_realtime() {
+    index = 0;
+    std::queue<InputStructure> data_queue;
+    std::mutex mtx;
+
+    std::cout << "start" << std::endl;
+
+    std::thread reader_thread([&]() {
+        while (true) {
+            try {
+                const auto start = std::chrono::steady_clock::now();
+
+                InputStructure inp = inp_proc->hear_one_message();
+
+                const auto end = std::chrono::steady_clock::now();
+                const std::chrono::duration<double> elapsed_seconds = end - start;
+
+                std::cout << index << " " << data_queue.size() << " read " << elapsed_seconds.count() << std::endl;
+
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    if (data_queue.size() >= MEAN) {
+                        data_queue.pop();
+                    }
+                    data_queue.push(inp);
+                }
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+            } catch (const SeaVisionException &exception) {
+                std::cerr << "Read error: " << exception.what() << std::endl;
+                continue;
+            }
+        }
+    });
+
+    std::thread processor_thread([&]() {
+        while (true) {
+            try {
+                InputStructure local_copy;
+                bool change = false;
+
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    if (!data_queue.empty()) {
+                        local_copy = data_queue.front();
+                        data_queue.pop();
+                        change = true;
+                    }
+                }
+
+                if (change) {
+                    const auto start = std::chrono::steady_clock::now();
+                    update(local_copy);
+                    const auto end = std::chrono::steady_clock::now();
+                    const std::chrono::duration<double> elapsed_seconds = end - start;
+
+                    std::cout << index << " " << data_queue.size() << " update " << elapsed_seconds.count()
+                              << std::endl;
+
+                    //std::cout << index << " " << std::endl;
+
+                    if (index > FOUR_NUM + 2 * MEAN) {
+                        OutputStructure res = get_mean_output();
+                        output_proc->pass_one_message(res);
+                    }
+                }
+
+            } catch (const SeaVisionException &exception) {
+                std::cerr << "Proccess error: " << exception.what() << std::endl;
+                continue;
+            }
+        }
+    });
+
+    reader_thread.join();
+    processor_thread.join();
 }
 
-void MainProcess::update(const InputStructure &input, const std::string &name) {
+void MainProcess::update(const InputStructure &input) {
 
     speed[index % MEAN] = input.sog;
     hgd[index % MEAN] = input.giro;
     last_back[index % NUM_STD] = input.bcksctr;
-    Eigen::VectorXi new_ang = disp_direct->calc_directions(last_back[index % NUM_STD], name, index);
+    Eigen::VectorXi new_ang = disp_direct->calc_directions(last_back[index % NUM_STD], index);
     dir_vec[index % CHANGE_DIR_NUM_SHOTS] = new_ang[0];
     int med = 0;
 
     if (index % CHANGE_DIR_NUM_SHOTS == 0) {
         med = get_median_direction(dir_vec, true);
         auto inp_back = mesh->calc_back(area_vec[med], input.bcksctr);
-        curve->update(index, inp_back, name);
+        curve->update(index, inp_back);
     } else if (index >= MEAN) {
         med = get_median_direction(dir_vec, false);
         auto inp_back = mesh->calc_back(area_vec[med], input.bcksctr);
-        curve->update(index, inp_back, name);
+        curve->update(index, inp_back);
     }
-
-    std::cout << " " << index << " med " << med << " new_angs " << new_ang.transpose() << " ";
-
-    if (index >= FOUR_NUM + MEAN) std::cout << "next " << index << std::endl;
 
     index += 1;
     if (index >= 2 * FOUR_NUM) {
         index = FOUR_NUM; // avoid overflowing
     }
     mean_output[index % MEAN] = make_output();
-    std::cout << " lens " << mean_output[index % MEAN].len.transpose() << " ";
 }
 
 OutputStructure MainProcess::make_output() {
@@ -95,20 +168,15 @@ OutputStructure MainProcess::make_output() {
 
     for (int i = 0; i < NUM_SYSTEMS; i++) {
 
-        if ((spec.m0[i] <= 1e-3) and (std::abs(spec.vcosalpha[i]) <= 1e-6)) { // / speed.mean()
+        bool cond = ((spec.m0[i] <= 1e-3) and (std::abs(spec.vcosalpha[i]) <= 1e-6))
+                    or ((spec.m0[i] <= 2e-3) and (std::abs(spec.vcosalpha[i]) > 2.)); // / speed.mean()
+
+        if (cond) {
             res.per[i] = 0.;
             res.swh[i] = 0.;
             res.m0[i] = 0.;
             res.dir[i] = 0.;
             res.vcos[i] = 0.;
-
-        } else if ((spec.m0[i] <= 2e-3) and (std::abs(spec.vcosalpha[i]) > 2.)) {
-            res.per[i] = 0.;
-            res.swh[i] = 0.;
-            res.m0[i] = 0.;
-            res.dir[i] = 0.;
-            res.vcos[i] = 0.;
-
         } else {
             res.per[i] = spec.peak_period[i];
             res.swh[i] = A_COEFF + B_COEFF * std::sqrt(spec.m0[i]);
@@ -153,19 +221,6 @@ OutputStructure MainProcess::get_mean_output() {
     }
 
     return res;
-}
-
-int MainProcess::get_median_direction(const Eigen::VectorXi &dir_ind, bool change_mean) {
-
-    if (change_mean) {
-        auto copy_vec = Eigen::VectorXi(dir_ind);
-        std::sort(copy_vec.begin(), copy_vec.end());
-        return copy_vec[static_cast<int>(std::round(static_cast<double>(CHANGE_DIR_NUM_SHOTS) / 2))];
-    } else {
-        auto copy_vec = Eigen::VectorXi(dir_ind.segment(0, MEAN));
-        std::sort(copy_vec.begin(), copy_vec.end());
-        return copy_vec[static_cast<int>(std::round(static_cast<double>(MEAN) / 2))];
-    }
 }
 
 } // namespace

@@ -45,8 +45,7 @@ public:
      * @param data last backscatter
      * @return index of zone with the most vertical wave crests
      */
-    [[nodiscard]] Eigen::VectorXi
-    calc_directions(const Eigen::MatrixXi &data, const std::string &dat, const int index); // TODO remove index
+    [[nodiscard]] Eigen::VectorXi calc_directions(const Eigen::MatrixXi &data, int index);
 
     /**
      * if current direction change significantly we go to new direction step by step

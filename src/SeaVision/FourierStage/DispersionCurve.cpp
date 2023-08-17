@@ -15,14 +15,14 @@ DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double
     data_fourier.resize(FOUR_NUM);
 }
 
-void DispersionCurve::update(const int index, const Eigen::MatrixXd &data, std::string name) {
+void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
 
     data_fourier[index % FOUR_NUM] = calc_fourier_2d_one(data);
     if (index >= FOUR_NUM + MEAN) {
         auto welch = calc_welch(index);
         picture = calc_abs_wave_num(welch);
         picture /= picture.maxCoeff();
-        calc_curve(name);
+        calc_curve();
     }
 }
 
@@ -162,7 +162,7 @@ Eigen::MatrixXd DispersionCurve::calc_abs_wave_num(const Eigen::VectorX<Eigen::M
     return res;
 }
 
-void DispersionCurve::calc_curve(std::string name) {
+void DispersionCurve::calc_curve() {
 
     // mirroring
     int half_size = static_cast<int>(picture.rows()) / 2;
@@ -172,15 +172,7 @@ void DispersionCurve::calc_curve(std::string name) {
     picture.block(0, 0, half_size, picture.cols()) += up.colwise().reverse();
     picture.block(half_size, 0, half_size, picture.cols()) += down.colwise().reverse();
 
-    std::ofstream out2("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + "test_curve.csv");
-    for (int i = 0; i < picture.rows(); ++i) {
-        for (int j = 0; j < picture.cols(); ++j) {
-            out2 << picture(i, j) << ",";
-        }
-        out2 << std::endl;
-    }
-
-    auto signal_noise_fir = proc_one_curve(picture, 0, name);
+    auto signal_noise_fir = proc_one_curve(picture, 0);
 
     Eigen::VectorXd ss_fir = trapezoid(signal_noise_fir.first, 0, -1); // convolution throw wave number for signal
     Eigen::VectorXd nn_fir = trapezoid(signal_noise_fir.second, 0, -1); // convolution throw wave number for noise
@@ -197,7 +189,7 @@ void DispersionCurve::calc_curve(std::string name) {
 
     spectrum_struct.m0[0] = trapezoid(ss_fir, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
-    auto signal_noise_sec = proc_one_curve(signal_noise_fir.second, 1, name); // we try to identify second system
+    auto signal_noise_sec = proc_one_curve(signal_noise_fir.second, 1); // we try to identify second system
 
     Eigen::VectorXd ss_sec = trapezoid(signal_noise_sec.first, 0, -1); // convolution throw wave number for signal
     Eigen::VectorXd nn_sec = trapezoid(signal_noise_sec.second, 0, -1); // convolution throw wave number for noise
@@ -213,7 +205,7 @@ void DispersionCurve::calc_curve(std::string name) {
     spectrum_struct.peak_period[1] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_sec)) / FOUR_NUM);
     spectrum_struct.m0[1] = trapezoid(ss_sec, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
-    auto signal_noise_th = proc_one_curve(signal_noise_sec.second, 2, name); // we try to identify second system
+    auto signal_noise_th = proc_one_curve(signal_noise_sec.second, 2); // we try to identify second system
 
     Eigen::VectorXd ss_th = trapezoid(signal_noise_th.first, 0, -1); // convolution throw wave number for signal
     Eigen::VectorXd nn_th = trapezoid(signal_noise_th.second, 0, -1); // convolution throw wave number for noise
@@ -232,7 +224,7 @@ void DispersionCurve::calc_curve(std::string name) {
 }
 
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times, std::string name) {
+DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
 
     // marking points of columns maximum
     Eigen::VectorXi max_freq = argumax(pic, 0); // vec of argumax by freq for each wave number
@@ -243,10 +235,10 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times, std::stri
     int argmax_max_freq = argumax(max_freq);
 
     if ((max_freq.maxCoeff() > (0.5 * static_cast<double>(pic.rows())) - 10) &&
-        (grad.segment(argmax_max_freq + 1, grad.size() - argmax_max_freq).sum() < 0)) {
-        max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq) *= -1;
-        max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq) +=
-                pic.rows() * Eigen::VectorXi::Ones(max_freq.size() - argmax_max_freq);
+        (grad.segment(argmax_max_freq + 1, grad.size() - argmax_max_freq - 1).sum() < 0)) {
+        max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq - 1) *= -1;
+        max_freq.segment(argmax_max_freq + 1, max_freq.size() - argmax_max_freq - 1) +=
+                pic.rows() * Eigen::VectorXi::Ones(max_freq.size() - argmax_max_freq - 1);
     }
 
     Eigen::VectorX<bool> mask = Eigen::VectorX<bool>::Zero(grad.size());
@@ -287,15 +279,6 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times, std::stri
     std::cout << "vcos " << vcosalpha << std::endl;
     Eigen::MatrixXd noise = Eigen::MatrixXd(pic); // there we cut area around dispersion curve
 
-    std::ofstream out5("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + std::to_string(times) +
-                       "left_mark.csv");///////////////
-    std::ofstream out6("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + std::to_string(times) +
-                       "right_mark.csv");//////////////
-    std::ofstream out7("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + std::to_string(times) +
-                       "mask.csv");//////////////
-    std::ofstream out8("/storage/kubrick/ezhova/SEAVISION_CPP/results/" + name + std::to_string(times) +
-                       "maxfreq.csv");//////////////
-
     for (int k = 0; k < pic.cols(); ++k) { // loop for columns
 
         // calculating frequency of current wave number
@@ -305,11 +288,6 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times, std::stri
         int left = std::max(static_cast<int>(std::round(freq - DELTA_FREQ)), 0); // left side of curve
         int right = std::min(static_cast<int>(std::round(freq + DELTA_FREQ)), FOUR_NUM); // right side of curve
         if (right > left) noise.col(k).segment(left, right - left).setZero(); // zeroing signal
-
-        out5 << left << ",";
-        out6 << right << ",";
-        out7 << mask[k] << ",";
-        out8 << max_freq[k] << ",";
     }
 
     Eigen::MatrixXd signal = pic - noise; // there only data around curve

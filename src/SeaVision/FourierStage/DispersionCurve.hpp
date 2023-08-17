@@ -44,7 +44,7 @@ public:
      * @param index current index
      * @param data current backscatter
      */
-    void update(int index, const Eigen::MatrixXd &data, std::string name);
+    void update(int index, const Eigen::MatrixXd &data);
 
     /**
      * calculating Fourier stage
@@ -62,16 +62,15 @@ public:
     /**
      * calculating main parameters of dispersion curve and spectrum
      */
-    void calc_curve(std::string name); // TODO remove name
+    void calc_curve();
 
     /**
      * process one curve on dispersion portrait
      * @param pic dispersion portrait (this.picture or minus previous signal)
      * @param times times that the function is called (from 0)
-     * @param name TODO remove
      * @return pair arrays of signal and noise
      */
-    std::pair<Eigen::MatrixXd, Eigen::MatrixXd> proc_one_curve(const Eigen::MatrixXd &pic, int times, std::string name);
+    std::pair<Eigen::MatrixXd, Eigen::MatrixXd> proc_one_curve(const Eigen::MatrixXd &pic, int times);
 
     /**
      * calculating coefficient in \omega = \sqrt{gk} + k vcosalpha using weighted least squares

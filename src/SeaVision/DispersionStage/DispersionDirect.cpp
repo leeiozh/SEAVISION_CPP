@@ -2,8 +2,6 @@
 // Created by leeiozh on 6/21/23.
 //
 
-#include <fstream>
-#include <iostream>
 #include "DispersionDirect.hpp"
 
 namespace SeaVision {
@@ -82,8 +80,7 @@ void DispersionDirect::smooth_change(const Eigen::VectorXi &new_vec) {
     }
 }
 
-Eigen::VectorXi
-DispersionDirect::calc_directions(const Eigen::MatrixXi &data, const std::string &dat, const int index) {
+Eigen::VectorXi DispersionDirect::calc_directions(const Eigen::MatrixXi &data, int index) {
 
     int height = std::ceil(static_cast<double>(data.cols()) / NUM_AREA); // height of rectangle for summing
     Eigen::VectorXd disp = Eigen::VectorXd::Zero(NUM_AREA); // vector of dispersion in each rectangle
@@ -115,30 +112,6 @@ DispersionDirect::calc_directions(const Eigen::MatrixXi &data, const std::string
     }
 
     rose = disp;
-
-    /*// calculating a length
-    int start_col = curr_std * height - static_cast<int>(height / 4.);
-    int block_cols = static_cast<int>(6. * static_cast<double>(height) / 4.);
-    if (curr_std == 0) start_col = 0;
-    if ((curr_std + 1) == NUM_AREA) block_cols = static_cast<int>(5. * static_cast<double>(height) / 4.);
-    Eigen::MatrixXi trim = data.block(360, start_col, 360, block_cols);
-    Eigen::VectorXd sum = Eigen::VectorXd::Zero(trim.rows()); // integral throw angles on one distance
-    for (int j = 0; j < trim.rows(); ++j) {
-        sum[j] = trim.row(j).sum();
-    }
-
-    std::ofstream out5(
-            "/storage/kubrick/ezhova/SEAVISION_CPP/results/len/length" + dat.substr() + std::to_string(index) + ".csv");
-
-    for (int j = 0; j < sum.size(); ++j) {
-        if (j != sum.size() - 1) {
-            out5 << sum[j] << ",";
-        } else {
-            out5 << sum[j];
-        }
-    }
-    curr_len = 2 * STEP * 360. / count_zeros_mean(sum);
-     */
 
     calc_length(data);
 
@@ -181,8 +154,6 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
         int half_size = std::floor(sum.size() / 2);
 
         Eigen::VectorXd spec = Eigen::VectorXd::Zero(half_size);
-
-        std::ofstream out10("/storage/kubrick/ezhova/SEAVISION_CPP/results/freq_spec555.csv");
 
         for (int t = 4; t < half_size; ++t) {
             spec[t] = out[t][0] * out[t][0] + out[t][1] * out[t][1]; // square norm
