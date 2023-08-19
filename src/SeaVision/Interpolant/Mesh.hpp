@@ -19,7 +19,7 @@ class Mesh {
 protected:
     Eigen::MatrixX<Cell> mesh; // matrix of mesh
     ReadParameters params; // parameters of reading (number of lines)
-    double dist_step = STEP; // meters
+    double dist_step; // meters
 
 
 public:
@@ -28,7 +28,7 @@ public:
      * @param params parameters of reading
      * @param dist_step size in pixels of input matrix on y axis
      */
-    explicit Mesh(ReadParameters params, double dist_step = STEP);
+    explicit Mesh(ReadParameters params, double dist_step);
 
     /**
      * calculating backscatter in cartesian

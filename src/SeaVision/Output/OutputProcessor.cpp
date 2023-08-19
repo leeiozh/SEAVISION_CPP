@@ -22,7 +22,7 @@ OutputProcessor::OutputProcessor(const std::string &ip, const int port) : ip(ip)
 
 void OutputProcessor::pass_one_message(const OutputStructure &output) {
 
-    char buffer[25 + NUM_AREA];
+    unsigned char buffer[25 + NUM_AREA];
     uint16_t data[11];
     uint8_t rose[NUM_AREA];
 
@@ -42,7 +42,7 @@ void OutputProcessor::pass_one_message(const OutputStructure &output) {
         rose[i] = static_cast<uint8_t>(output.rose[i] * 100);
     }
 
-    buffer[0] = '5';
+    buffer[0] = 0x5;
     for (int i = 0; i < 11; ++i) {
         buffer[2 * i + 1] = static_cast<char>(data[i] & 0xFF);
         buffer[2 * i + 2] = static_cast<char>((data[i] >> 8) & 0xFF);

@@ -26,33 +26,33 @@ class MainProcess {
 private:
     int index = 0; // index of current shot
 
+    Eigen::VectorXd hgd; // last MEAN course from vessel gyroscope
+    Eigen::VectorXd speed; // last MEAN speed from vessel navigation
 
-    Eigen::VectorXd hgd; // current course from vessel gyroscope
-    Eigen::VectorXd speed; // current speed from vessel gyroscope
-
-    std::shared_ptr<InputProcessor> inp_proc; // pointer on file reader
-    std::shared_ptr<OutputProcessor> output_proc;
+    std::shared_ptr<InputProcessor> inp_proc; // pointer on input proccesor
+    std::shared_ptr<OutputProcessor> output_proc; // pointer on output proccesor
 
     std::shared_ptr<DispersionDirect> disp_direct; // pointer on area searcher
     std::shared_ptr<Mesh> mesh; // pointer on mesh
-    std::vector<Eigen::MatrixXi> last_back; // saved last STD_NUM backscatters
     std::vector<Area> area_vec; // vector of areas for speedy computations
     std::shared_ptr<DispersionCurve> curve; // pointer on fourier stuff
 
-    Eigen::VectorXi dir_vec;
-    std::vector<OutputStructure> mean_output;
+    Eigen::VectorXi dir_vec; // vector of CHANGE_DIR_NUM_SHOTS last main directions
+    int curr_dir; // index of current zone with the most contrast signal
+    std::vector<OutputStructure> mean_output; // vector of MEAN last results
 
 public:
     /**
      * constructor
      * @param inp_proc pointer on input processor
-     * @param area_search  pointer on area searcher
+     * @param output_proc pointer of output processor
+     * @param disp_direct  pointer on area searcher
      * @param mesh pointer on mesh
      * @param curve_vec pointer on fourier stuff
      */
-    MainProcess(const std::shared_ptr<InputProcessor> &inp_proc, const std::shared_ptr<OutputProcessor> & output_proc,
-                const std::shared_ptr<DispersionDirect> &area_search,
-                const std::shared_ptr<Mesh> &mesh, const std::shared_ptr<DispersionCurve> &curve);
+    MainProcess(const std::shared_ptr<InputProcessor> &inp_proc, const std::shared_ptr<OutputProcessor> &output_proc,
+                const std::shared_ptr<DispersionDirect> &disp_direct, const std::shared_ptr<Mesh> &mesh,
+                const std::shared_ptr<DispersionCurve> &curve);
 
     /**
      * update and process next shot
@@ -65,13 +65,13 @@ public:
      * @param num number of processing shots
      * @return vector of OutputStructures with results of all processing shots
      */
-    std::vector<OutputStructure> run_debug(int num);
+    //std::vector<OutputStructure> run_debug(int num);
 
     /**
      * running processing next shot
      * @return OutputStructures with results
      */
-    OutputStructure run_debug();
+    //OutputStructure run_debug();
 
     void run_realtime();
 

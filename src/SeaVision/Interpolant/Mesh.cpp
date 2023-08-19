@@ -49,7 +49,7 @@ Eigen::MatrixXd Mesh::calc_back(const SeaVision::Area &area, const Eigen::Matrix
             double y = jj + x_norm * (vertexes(3, 1) + y_norm * (vertexes(0, 1) - vertexes(3, 1)) - jj);
             int y_div = params.line_end + static_cast<int>(y);
 
-            // просто интерполяция, использовать для ускорения запуска программы
+            // closest interolation, use only for boost
             // res(i, j) = back(mesh(x_div, y_div).indexes[0], mesh(x_div, y_div).indexes[1]);
 
             res(i, j) = (1 - mesh(x_div, y_div).weights[0]) *

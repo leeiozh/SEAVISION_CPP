@@ -9,6 +9,7 @@
 #include <fftw3.h>
 #include "SeaVision/Structures.hpp"
 #include "SeaVision/Consts.hpp"
+#include "SeaVision/Math.hpp"
 
 namespace SeaVision {
 

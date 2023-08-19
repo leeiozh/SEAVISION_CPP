@@ -8,7 +8,7 @@
 #include <Eigen/Dense>
 #include <fftw3.h>
 #include "SeaVision/Structures.hpp"
-#include "SeaVision/MainProcess/Math.hpp"
+#include "SeaVision/Math.hpp"
 
 namespace SeaVision {
 

@@ -13,9 +13,17 @@ constexpr int NUM_SYSTEMS = 3; // number of wave systems taken into account
 
 constexpr double TURN_PERIOD = 2.5; // period of radars turn in seconds
 
+constexpr double MAX_TURN_PERIOD = 2.6; // period of radars turn in seconds
+
 constexpr int CUT_NUM = 32; // number of lines taken into account after 2d fourier transform
 
 constexpr int AREA_SIZE = 720; // width and height of area square in meters
+
+constexpr int AREA_DISTANCE_METERS = 840; //
+
+constexpr int AREA_DISTANCE_PX = 448;
+
+constexpr int AREA_AZIMUTH_PX = 4096;
 
 constexpr double K_MAX = 2. * M_PI / static_cast<double>(AREA_SIZE) * static_cast<double>(CUT_NUM); // max wave number
 
@@ -36,8 +44,6 @@ constexpr double C_COEFF = 0.42975475; // coefficient in SWH = C + D \sqrt(MAX_D
 constexpr double D_COEFF = 4.47947967; // coefficient in SWH = C + D \sqrt(MAX_DISP)
 
 constexpr int NUM_AREA = 32; // number of sectors by azimuth
-
-constexpr int NUM_STD = 4; // number of shots for calculating a zone with the most contrast signal
 
 constexpr double STEP = 1.875; // resolution of image (distance in meters between neighbors cells)
 

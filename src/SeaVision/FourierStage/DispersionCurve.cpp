@@ -2,10 +2,7 @@
 // Created by leeiozh on 16.04.23.
 //
 
-#include <iostream>
-#include <fstream>
 #include "DispersionCurve.hpp"
-#include "SeaVision/MainProcess/Math.hpp"
 
 
 namespace SeaVision {
@@ -228,7 +225,7 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
 
     // marking points of columns maximum
     Eigen::VectorXi max_freq = argumax(pic, 0); // vec of argumax by freq for each wave number
-    Eigen::VectorXd grad = gradient(max_freq); // gradient of vec above
+    Eigen::VectorXd grad = gradient_fir(max_freq); // gradient of vec above
 
     /* for me: picture.rows = 256 (freq), picture.cols = 32 (wave_num) */
 
@@ -254,7 +251,7 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
     max_freq[0] = 0; // forced zero crossing
     mask[0] = true; // forced zero crossing
 
-    std::cout << "mask " << mask.transpose() << std::endl;
+    //std::cout << "mask " << mask.transpose() << std::endl;
 
     std::vector<double> max_freq_masked; // y of fitting points
     std::vector<double> k_num_vec; // x of fitting points
@@ -276,7 +273,7 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
 
     spectrum_struct.vcosalpha[times] = vcosalpha;
 
-    std::cout << "vcos " << vcosalpha << std::endl;
+    //std::cout << "vcos " << vcosalpha << std::endl;
     Eigen::MatrixXd noise = Eigen::MatrixXd(pic); // there we cut area around dispersion curve
 
     for (int k = 0; k < pic.cols(); ++k) { // loop for columns

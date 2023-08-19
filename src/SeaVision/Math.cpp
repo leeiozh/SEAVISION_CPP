@@ -110,7 +110,16 @@ Eigen::VectorXi argumax(const Eigen::MatrixXd &mat, int axis) {
     }
 }
 
-Eigen::VectorXd gradient(const Eigen::VectorXi &vec) {
+Eigen::VectorXd gradient_fir(const Eigen::VectorXi &vec) {
+    Eigen::VectorXd res = Eigen::VectorXd::Zero(vec.size());
+    res[0] = 0.;
+    for (int i = 1; i < vec.size() - 1; ++i) {
+        res[i] = vec[i] - vec[i - 1];
+    }
+    return res;
+}
+
+Eigen::VectorXd gradient_sec(const Eigen::VectorXi &vec) {
     Eigen::VectorXd res = Eigen::VectorXd::Zero(vec.size());
     res[0] = vec[1] - vec[0];
     res[vec.size() - 1] = vec[vec.size() - 1] - vec[vec.size() - 2];

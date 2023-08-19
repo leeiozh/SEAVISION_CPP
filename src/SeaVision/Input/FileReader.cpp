@@ -10,7 +10,8 @@ FileReader::FileReader(std::string path, const ReadParameters params) : path(std
 
 InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
-    InputStructure res{0, 0, 0, 0, 0, STEP, params.line_size, 4096};
+    InputConditions cond;
+    InputPRLI prli;
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
 
@@ -31,17 +32,17 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         double meta[8];
         file.read((char *) &meta, sizeof(meta));
 
-        res.giro = meta[3];
-        res.lat = meta[4];
-        res.lon = meta[5];
-        res.cog = meta[6];
-        res.sog = meta[7];
+        cond.cog = meta[3];
+        cond.lat = meta[4];
+        cond.lon = meta[5];
+        cond.cog = meta[6];
+        cond.sog = meta[7];
 
         // reading throw one azimuth
-        for (int i = 0; i < res.size_az; ++i) {
+        for (int i = 0; i < prli.size_az; ++i) {
 
             // read full line throw current azimuth
-            uint8_t curr_line[res.size_az];
+            uint8_t curr_line[prli.size_az];
             file.read((char *) &curr_line, sizeof(curr_line));
 
             // read some metadata which we don't used
@@ -51,13 +52,13 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
             // record necessary data
 
             if (params.line_start == 0 && params.line_end == 0) {
-                res.size_dist = res.size_az;
-                for (int j = 0; j < res.size_dist; ++j) {
-                    res.bcksctr(j, i) = curr_line[j];
+                prli.size_dist = prli.size_az;
+                for (int j = 0; j < prli.size_dist; ++j) {
+                    prli.bcksctr(j, i) = curr_line[j];
                 }
             } else {
                 for (int j = params.line_start; j < params.line_end; ++j) {
-                    res.bcksctr(j - params.line_start, i) = curr_line[j];
+                    prli.bcksctr(j - params.line_start, i) = curr_line[j];
                 }
             }
         }
@@ -68,7 +69,7 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         throw SeaVisionException(buff.str().c_str());
     }
 
-    return res;
+    return InputStructure{cond, prli};
 }
 
 InputStructure FileReader::read_next_file(int index) const {

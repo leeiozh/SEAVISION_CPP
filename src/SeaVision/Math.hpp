@@ -25,7 +25,9 @@ Eigen::VectorXi argumax(const Eigen::VectorXd &vec, int num, int window);
 
 Eigen::VectorXi argumax(const Eigen::MatrixXd &mat, int axis);
 
-Eigen::VectorXd gradient(const Eigen::VectorXi &vec);
+Eigen::VectorXd gradient_fir(const Eigen::VectorXi &vec);
+
+Eigen::VectorXd gradient_sec(const Eigen::VectorXi &vec);
 
 Eigen::VectorXd abs(const Eigen::VectorXd &vec);
 

@@ -29,4 +29,16 @@ TEST(TEST_PARALLEL, DATA) {
     proc.run_realtime();
 }
 
+TEST(TEST_PARALLEL, CONNECT){
+
+    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07/");
+
+    ReadParameters params{0, 4096, 4096};
+    FileReader reader(path, params);
+
+    Sender sender("192.168.0.102", 4000, std::make_shared<FileReader>(reader));
+
+    sender.pass_queue_files(path, 4);
+}
+
 } // namespace
