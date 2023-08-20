@@ -23,20 +23,20 @@ protected:
     int port;
     int socket_descriptor;
     struct sockaddr_in server_address{};
-    struct sockaddr_in client_address{};
-    socklen_t client_addr_len;
     ReadParameters params;
+    InputPRLI curr_prli;
+    Eigen::MatrixX<bool> ready;
 
 public:
     InputProcessor(const std::string &ip, int port, const ReadParameters& params);
 
     [[nodiscard]] unsigned char listen_first_byte() const;
 
-    [[nodiscard]] InputStructure listen_message() const;
+    [[nodiscard]] InputStructure listen_message();
 
     [[nodiscard]] InputConditions listen_conditions() const;
 
-    [[nodiscard]] InputPRLI listen_prli() const;
+    [[nodiscard]] bool listen_prli();
 
     ~InputProcessor();
 };

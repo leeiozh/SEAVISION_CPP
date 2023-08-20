@@ -76,7 +76,6 @@ void MainProcess::run_realtime() {
                 const std::chrono::duration<double> elapsed_seconds = end - start;
 
                 std::cout << index << " " << data_queue.size() << " read " << elapsed_seconds.count() << std::endl;
-
                 {
                     std::lock_guard<std::mutex> lock(mtx);
 

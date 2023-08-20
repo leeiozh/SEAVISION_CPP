@@ -16,8 +16,8 @@ TEST(TEST_PARALLEL, DATA) {
     auto disp_direct = DispersionDirect(NUM_AREA);
     Mesh mesh = Mesh(params, STEP);
 
-    InputProcessor inp_proc("192.100", 5000, params);
-    OutputProcessor output_proc("192.100", 5000);
+    InputProcessor inp_proc("192.168.0.102", 4000, params);
+    OutputProcessor output_proc("192.168.0.103", 4000);
 
     auto curve = std::make_shared<DispersionCurve>(FOUR_NUM, DELTA_FREQ, CUT_NUM, K_MAX);
 
@@ -31,12 +31,12 @@ TEST(TEST_PARALLEL, DATA) {
 
 TEST(TEST_PARALLEL, CONNECT){
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07/");
+    std::string path("/home/leeiozh/ocean/SEAVISION_CPP/2022.10.07/");
 
-    ReadParameters params{0, 4096, 4096};
+    ReadParameters params{0, 0, 4096, 4096};
     FileReader reader(path, params);
 
-    Sender sender("192.168.0.102", 4000, std::make_shared<FileReader>(reader));
+    Sender sender("192.168.0.103", 4000, std::make_shared<FileReader>(reader));
 
     sender.pass_queue_files(path, 4);
 }

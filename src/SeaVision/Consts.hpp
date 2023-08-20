@@ -13,7 +13,7 @@ constexpr int NUM_SYSTEMS = 3; // number of wave systems taken into account
 
 constexpr double TURN_PERIOD = 2.5; // period of radars turn in seconds
 
-constexpr double MAX_TURN_PERIOD = 2.6; // period of radars turn in seconds
+constexpr double MAX_TURN_PERIOD = 50000.; // period of radars turn in seconds
 
 constexpr int CUT_NUM = 32; // number of lines taken into account after 2d fourier transform
 
