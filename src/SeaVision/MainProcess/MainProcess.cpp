@@ -85,7 +85,7 @@ void MainProcess::run_realtime() {
                 }
                 // std::this_thread::sleep_for(std::chrono::seconds(1));
             } catch (const SeaVisionException &exception) {
-                std::cerr << "Read error: " << exception.what() << std::endl;
+                std::cerr << "Global read error: " << exception.what() << std::endl;
                 continue;
             }
         }

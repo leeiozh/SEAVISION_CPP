@@ -12,7 +12,7 @@ namespace SeaVision {
 
 TEST(TEST_PARALLEL, DATA) {
     std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07/");
-    ReadParameters params{0, 4096, 4096};
+    ReadParameters params{0, 1024, 1024};
     auto disp_direct = DispersionDirect(NUM_AREA);
     Mesh mesh = Mesh(params, STEP);
 

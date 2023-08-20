@@ -41,7 +41,7 @@ struct InputStructure {
 struct ReadParameters {
     int line_start = 0; // start of reading (px)
     int line_end = 0; // end of reading (px), if "0" then read to end of file
-    int line_size = line_end - line_start; // (px)
+    int line_size = 4096; // (px)
     int size_angle = 4096; // pixels
 };
 

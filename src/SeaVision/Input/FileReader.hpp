@@ -18,8 +18,8 @@ namespace SeaVision {
 
 class FileReader {
 
-    std::string path;
-    ReadParameters params;
+    std::string path; // path to folder with files
+    ReadParameters params; // parameters of reading
 
 public:
 
