@@ -35,8 +35,9 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         cond.cog = meta[3];
         cond.lat = meta[4];
         cond.lon = meta[5];
-        cond.cog = meta[6];
+        cond.hdg = meta[6];
         cond.sog = meta[7];
+        cond.spd = meta[7];
 
         // reading throw one azimuth
         for (int i = 0; i < prli.size_az; ++i) {

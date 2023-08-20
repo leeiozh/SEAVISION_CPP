@@ -7,7 +7,7 @@
 
 namespace SeaVision {
 
-Sender::Sender(const std::string &ip, int port, const std::shared_ptr<FileReader>& file_reader) :
+Sender::Sender(const std::string &ip, int port, const std::shared_ptr<FileReader> &file_reader) :
         ip(ip), port(port), file_reader(file_reader) {
 
     socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
@@ -24,9 +24,8 @@ Sender::Sender(const std::string &ip, int port, const std::shared_ptr<FileReader
 
 void Sender::pass_cond(const SeaVision::InputConditions &cond) {
 
-    unsigned char first_byte[1];
-    first_byte[0] = 0x1;
-    sendto(socket_descriptor, first_byte, sizeof(first_byte), 0, (struct sockaddr *) &server_address,
+    unsigned char first_byte = 0x1;
+    sendto(socket_descriptor, &first_byte, sizeof(first_byte), 0, (struct sockaddr *) &server_address,
            sizeof(server_address));
 
     int32_t lat_lon[2];
@@ -47,35 +46,51 @@ void Sender::pass_cond(const SeaVision::InputConditions &cond) {
 }
 
 void Sender::pass_prli(const SeaVision::InputPRLI &prli) {
-    unsigned char first_byte[1];
-    first_byte[0] = 0x8;
-    sendto(socket_descriptor, first_byte, sizeof(first_byte), 0, (struct sockaddr *) &server_address,
-           sizeof(server_address));
+
+    unsigned char first_byte;
+    first_byte = 0x8;
 
     unsigned short num_step[2];
 
     for (int i = 0; i < 4096; ++i) {
-        num_step[0] = i;
-        num_step[1] = 7;
-        sendto(socket_descriptor, num_step, sizeof(num_step), 0, (struct sockaddr *) &server_address,
-               sizeof(server_address));
+        num_step[0] = static_cast<unsigned short>(i);
+        num_step[1] = static_cast<unsigned short>(1875);
 
         for (int j = 0; j < 4; ++j) {
             unsigned char part_all[3];
-            part_all[0] = j;
-            part_all[1] = 4;
-            part_all[2] = 0;
+            part_all[0] = static_cast<unsigned char>(j);
+            part_all[1] = static_cast<unsigned char>(4);
+            part_all[2] = static_cast<unsigned char>(0);
+
+            sendto(socket_descriptor, &first_byte, sizeof(first_byte), 0, (struct sockaddr *) &server_address,
+                   sizeof(server_address));
+
+            //std::cout << "prli byte send" << std::endl;
+            //std::this_thread::sleep_for(std::chrono::seconds(1));
+
+            sendto(socket_descriptor, num_step, sizeof(num_step), 0, (struct sockaddr *) &server_address,
+                   sizeof(server_address));
+
+            //std::cout << "prli num_step send " << i << std::endl;
+            //std::this_thread::sleep_for(std::chrono::seconds(1));
 
             sendto(socket_descriptor, part_all, sizeof(part_all), 0, (struct sockaddr *) &server_address,
                    sizeof(server_address));
 
+            //std::cout << "prli part_all send " << j << std::endl;
+            //std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
             unsigned char line[1024];
-            for (int k = 0; k < 1024; ++k){
-                line[k] = prli.bcksctr(j * 1024 + k, j);
+            for (int k = 0; k < 1024; ++k) {
+                line[k] = static_cast<unsigned char>(prli.bcksctr(j * 1024 + k, j));
             }
             sendto(socket_descriptor, line, sizeof(line), 0, (struct sockaddr *) &server_address,
                    sizeof(server_address));
+
+            //std::cout << "prli " << i << " " << j << " line send" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
+        std::cout << "prli " << i << " line send" << std::endl;
     }
 }
 
@@ -86,6 +101,7 @@ void Sender::pass_one_file(const std::string &file_name) {
     std::cout << file_name << " conditions send" << std::endl;
     pass_prli(inp.prli);
     std::cout << file_name << " prli send" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 
 void Sender::pass_queue_files(const std::string &path, int num) {
@@ -98,9 +114,7 @@ void Sender::pass_queue_files(const std::string &path, int num) {
     }
 
     std::sort(filenames.begin(), filenames.end(),
-              [](const auto &lhs, const auto &rhs) {
-                  return lhs.string() < rhs.string();
-              });
+              [](const auto &lhs, const auto &rhs) { return lhs.string() < rhs.string(); });
 
     if (num > static_cast<int>(filenames.size())) {
         std::stringstream buff;
@@ -111,8 +125,6 @@ void Sender::pass_queue_files(const std::string &path, int num) {
 
     for (int i = 0; i < num; ++i) {
         pass_one_file(filenames[i]);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        std::cout << i << "th file send" << std::endl;
     }
 }
 

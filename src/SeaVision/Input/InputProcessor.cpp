@@ -8,7 +8,7 @@
 
 namespace SeaVision {
 
-std::ofstream file("/home/leeiozh/ocean/SEAVISION_CPP/tests/text.txt");
+std::ofstream file("/home/leeiozh/ocean/seavisionCPP/SeaVision/tests/log.txt");
 
 InputProcessor::InputProcessor(const std::string &ip, int port, const ReadParameters &params) : ip(ip), port(port),
                                                                                                 params(params) {
@@ -151,7 +151,7 @@ InputStructure InputProcessor::listen_message() {
 
         file << "First byte " << std::hex << static_cast<int>(first_byte) << " ";
 
-        if (first_byte == 0x8) {
+        if (first_byte == 0x8 and !prli_ready) {
             prli_ready = listen_prli();
             if (prli_ready) std::cout << "prli ready" << std::endl;
         }
@@ -161,7 +161,7 @@ InputStructure InputProcessor::listen_message() {
             std::cout << "cond ready" << std::endl;
         } else {
             std::stringstream buff;
-            buff << "Junk instead of first byte!";
+            buff << "Junk instead of first byte! Read byte >> " << static_cast<int>(first_byte) << " !";
             file << std::endl;
             throw SeaVisionException(buff.str().c_str());
         }
