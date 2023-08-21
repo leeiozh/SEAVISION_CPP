@@ -31,12 +31,12 @@ TEST(TEST_PARALLEL, DATA) {
 
 TEST(TEST_PARALLEL, CONNECT) {
 
-    std::string path("/home/leeiozh/ocean/seavisionCPP/2022.10.07/");
+    std::string path("/home/leeiozh/ocean/SEAVISION_CPP/2022.10.07/");
 
     ReadParameters params{0, 4096, 4096};
     FileReader reader(path, params);
 
-    Sender sender("192.168.0.102", 4000, std::make_shared<FileReader>(reader));
+    Sender sender("192.168.0.103", 4000, std::make_shared<FileReader>(reader));
 
     std::thread send_thread([&]() {
         sender.pass_queue_files(path, 300);
@@ -45,8 +45,8 @@ TEST(TEST_PARALLEL, CONNECT) {
     std::thread receive_thread([&]() {
 
         struct sockaddr_in server_address{};
-        std::string ip; // IP of current machine
-        int port; // port for receiving data
+        std::string ip = "192.168.0.102"; // IP of current machine
+        int port = 4000; // port for receiving data
         int socket_descriptor; // internal stuff
 
         socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
@@ -89,9 +89,9 @@ TEST(TEST_PARALLEL, CONNECT) {
                 recv(socket_descriptor, &rose, sizeof(rose), 0);
 
                 std::ofstream file_rose(
-                        "/home/leeiozh/ocean/seavisionCPP/SeaVision/tests/rose/rose" + std::to_string(counter) + ".csv");
-                for (auto &i : rose){
-                    file_rose << i << ",";
+                        "/home/leeiozh/ocean/SEAVISION_CPP/tests/rose/rose" + std::to_string(counter) + ".csv");
+                for (auto &i: rose) {
+                    file_rose << static_cast<int>(i) << ",";
                 }
                 counter++;
             }

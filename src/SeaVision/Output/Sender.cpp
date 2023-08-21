@@ -35,14 +35,18 @@ void Sender::pass_cond(const SeaVision::InputConditions &cond) {
     sendto(socket_descriptor, lat_lon, sizeof(lat_lon), 0, (struct sockaddr *) &server_address,
            sizeof(server_address));
 
-    uint16_t cdhs[4];
-    cdhs[0] = static_cast<uint16_t>(cond.cog * 100.);
-    cdhs[1] = static_cast<uint16_t>(cond.sog * 100.);
-    cdhs[2] = static_cast<uint16_t>(cond.hdg * 100.);
-    cdhs[3] = static_cast<uint16_t>(cond.spd * 100.);
+    std::cout << "send lat+lon " << cond.lat << " " << cond.lon << std::endl;
 
-    sendto(socket_descriptor, cdhs, sizeof(cdhs), 0, (struct sockaddr *) &server_address,
+    uint16_t cshs[4];
+    cshs[0] = static_cast<uint16_t>(cond.cog * 100.);
+    cshs[1] = static_cast<uint16_t>(cond.sog * 100.);
+    cshs[2] = static_cast<uint16_t>(cond.hdg * 100.);
+    cshs[3] = static_cast<uint16_t>(cond.spd * 100.);
+
+    sendto(socket_descriptor, cshs, sizeof(cshs), 0, (struct sockaddr *) &server_address,
            sizeof(server_address));
+
+    std::cout << "send cdhs " << cond.cog << " " << cond.sog << " " << cond.hdg << " " << cond.spd << std::endl;
 }
 
 void Sender::pass_prli(const SeaVision::InputPRLI &prli) {
@@ -82,15 +86,15 @@ void Sender::pass_prli(const SeaVision::InputPRLI &prli) {
 
             unsigned char line[1024];
             for (int k = 0; k < 1024; ++k) {
-                line[k] = static_cast<unsigned char>(prli.bcksctr(j * 1024 + k, j));
+                line[k] = static_cast<unsigned char>(prli.bcksctr(j * 1024 + k, i));
             }
             sendto(socket_descriptor, line, sizeof(line), 0, (struct sockaddr *) &server_address,
                    sizeof(server_address));
 
             //std::cout << "prli " << i << " " << j << " line send" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(150));
         }
-        std::cout << "prli " << i << " line send" << std::endl;
+        //std::cout << "prli " << i << " line send" << std::endl;
     }
 }
 
@@ -101,7 +105,7 @@ void Sender::pass_one_file(const std::string &file_name) {
     std::cout << file_name << " conditions send" << std::endl;
     pass_prli(inp.prli);
     std::cout << file_name << " prli send" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //std::this_thread::sleep_for(std::chrono::seconds(1));
 }
 
 void Sender::pass_queue_files(const std::string &path, int num) {
@@ -124,6 +128,7 @@ void Sender::pass_queue_files(const std::string &path, int num) {
     }
 
     for (int i = 0; i < num; ++i) {
+        std::cout << i  << " ";
         pass_one_file(filenames[i]);
     }
 }
