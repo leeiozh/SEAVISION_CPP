@@ -33,9 +33,11 @@ InputProcessor::InputProcessor(const std::string &ip, int port, const ReadParame
 
     ready_vec.resize(params.size_angle); // resizing vector of readiness
     curr_prli.bcksctr.resize(params.line_size, params.size_angle);
+    curr_prli.bcksctr.setZero();
 
     start_part = params.line_start / 1024;
     finish_part = params.line_end / 1024;
+    double_counter = 0;
 }
 
 unsigned char InputProcessor::listen_first_byte() const {
@@ -122,8 +124,8 @@ int InputProcessor::listen_prli() {
         throw SeaVisionException(buff.str().c_str());
     }
 
-    //file << part << " " << static_cast<int>(part_all[1]) << " " <<
-    //     static_cast<int>(part_all[2]) << std::endl;
+    file << "received " << curr_prli.step << " " << num << " " << part << " " << ready_vec.cast<int>().sum()
+         << std::endl;
 
     unsigned char line[1024];
     bytesRead = recv(socket_descriptor, (unsigned char *) &line, sizeof(line), 0);
@@ -140,38 +142,42 @@ int InputProcessor::listen_prli() {
         }
     }
 
-    if (part == 0) ready_vec(num) = true; // think that line with this number is ready
-
-    /*std::cout << num << " " << part << " sum " << ready_matrix.cast<int>().sum() << " "
-              << static_cast<double >(ready_matrix.cast<int>().sum()) /
-                 static_cast<double >(ready_matrix.rows() * ready_matrix.cols()) << std::endl;*/
+    if (part == 0) {
+        if (ready_vec(num)) double_counter++; // finish filling if we go second time
+        else ready_vec(num) = true; // think that line with this number is ready
+    }
+    if (double_counter >= 4) return static_cast<int>(ready_vec.size());
 
     return ready_vec.cast<int>().sum();
 }
 
 InputStructure InputProcessor::listen_message() {
 
+    double_counter = 0;
     int prli_ready = 0.; // number of ready lines
     bool cond_ready = false; // flag if conditions are ready
     ready_vec = Eigen::VectorX<bool>::Zero(params.size_angle); // zeroing vector of readiness
-    curr_prli.bcksctr = Eigen::MatrixXi::Zero(params.line_size, params.size_angle); // zeroing result backscatter
+    //curr_prli.bcksctr = Eigen::MatrixXi::Zero(params.line_size, params.size_angle); // zeroing result backscatter
 
     const auto start = std::chrono::steady_clock::now();
     auto end = std::chrono::steady_clock::now();
     double elapsed_seconds; // timer for check how long this process go
 
-    while (prli_ready < (ready_vec.size()) or
-           !cond_ready) { // loop while backscatter not fill completely and conditions read
+    while (prli_ready < (ready_vec.size())) { // loop while backscatter not fill completely and conditions read
 
         try {
             auto first_byte = static_cast<int>(listen_first_byte()); // listening first byte of each parcel
 
+            file << "first byte " << first_byte << std::endl;
+
             if (first_byte == 8 and prli_ready < (ready_vec.size())) { // if first byte is "0x8" listen PRLI data
                 prli_ready = listen_prli();
-                if (prli_ready == (ready_vec.size())) std::cout << "prli ready" << std::endl;
+                if (prli_ready == (ready_vec.size())) std::cout << "prli ready " << curr_prli.step << std::endl;
+
             } else if (first_byte == 1 and !cond_ready) { // if first byte is "0x1" listen PRLI data
                 cond_ready = listen_conditions();
-                if (cond_ready) std::cout << "cond ready" << std::endl;
+                if (cond_ready) std::cout << "cond ready " << curr_cond.lat << " " << curr_cond.lon << std::endl;
+
             } else {
                 std::stringstream buff;
                 buff << "Junk instead of first byte! Read byte >> " << first_byte << "!";

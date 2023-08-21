@@ -116,14 +116,19 @@ void MainProcess::run_realtime() {
                     std::cout << index << " " << data_queue.size() << " update " << elapsed_seconds.count()
                               << std::endl;
 
+                    if (index > MEAN) {
+                        OutputStructure res = get_mean_output();
+                        std::cout << "res " << res.dir[0] << " " << res.swh[0] << " " << res.vcos[0] << std::endl;
+                    }
+
                     if (index > FOUR_NUM + 2 * MEAN) { // TODO check it
                         OutputStructure res = get_mean_output(); // prepare results for sending
-                        output_proc->pass_one_message(res); // sending
+                        output_proc->pass_message(res); // sending
                     }
                 }
 
             } catch (const SeaVisionException &exception) {
-                std::cerr << "Proccess error: " << exception.what() << std::endl;
+                std::cerr << "Process error: " << exception.what() << std::endl;
                 continue;
             }
         }
@@ -147,9 +152,17 @@ void MainProcess::update(const InputStructure &input) {
     auto inp_back = mesh->calc_back(area_vec[curr_dir], input.prli.bcksctr);
     curve->update(index, inp_back);
 
-    index += 1;
-    if (index >= 2 * FOUR_NUM) {
-        index = FOUR_NUM; // avoid overflowing
+    index++;
+    if (index >= 3 * FOUR_NUM) {
+        index = 2 * FOUR_NUM; // avoid overflowing
+    }
+
+    std::ofstream file_out("/home/leeiozh/ocean/seavisionCPP/SeaVision/tests/back/back_" + std::to_string(index) + ".csv" );
+    for (int i = 0; i < input.prli.bcksctr.rows(); ++i){
+        for (int j = 0 ; j < input.prli.bcksctr.cols(); ++j){
+            file_out << input.prli.bcksctr(i, j) << ",";
+        }
+        file_out << std::endl;
     }
 
     mean_output[index % MEAN] = make_output();

@@ -30,6 +30,7 @@ protected:
     InputPRLI curr_prli; // current PRLI for filling
     InputConditions curr_cond; // current conditions for filling
     Eigen::VectorX<bool> ready_vec; // vector of readiness data
+    int double_counter;
 
     int start_part, finish_part;
 

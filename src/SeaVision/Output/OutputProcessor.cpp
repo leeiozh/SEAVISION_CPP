@@ -20,11 +20,20 @@ OutputProcessor::OutputProcessor(const std::string &ip, const int port) : ip(ip)
     inet_pton(AF_INET, ip.c_str(), &server_address.sin_addr);
 }
 
-void OutputProcessor::pass_one_message(const OutputStructure &output) {
+void OutputProcessor::pass_message(const OutputStructure &output) {
 
-    unsigned char buffer[25 + NUM_AREA];
-    uint16_t data[11];
-    uint8_t rose[NUM_AREA];
+    unsigned char first_byte = 0x5;
+
+    ssize_t bytesSent = sendto(socket_descriptor, &first_byte, sizeof(first_byte), 0,
+                               (struct sockaddr *) &server_address, sizeof(server_address));
+
+    if (bytesSent == -1) {
+        std::stringstream buff;
+        buff << "Error when sending a data!";
+        throw SeaVisionException(buff.str().c_str());
+    }
+
+    uint16_t data[12];
 
     data[0] = static_cast<uint16_t>(output.swh[0] * 100);
     data[1] = static_cast<uint16_t>(output.dir[0] * 100);
@@ -37,21 +46,9 @@ void OutputProcessor::pass_one_message(const OutputStructure &output) {
     data[8] = static_cast<uint16_t>(output.swh[2] * 100);
     data[9] = static_cast<uint16_t>(output.dir[2] * 100);
     data[10] = static_cast<uint16_t>(output.per[2] * 100);
+    data[11] = static_cast<uint16_t>(output.len[2] * 100);
 
-    for (int i = 0; i < NUM_AREA; ++i) {
-        rose[i] = static_cast<uint8_t>(output.rose[i] * 100);
-    }
-
-    buffer[0] = 0x5;
-    for (int i = 0; i < 11; ++i) {
-        buffer[2 * i + 1] = static_cast<char>(data[i] & 0xFF);
-        buffer[2 * i + 2] = static_cast<char>((data[i] >> 8) & 0xFF);
-    }
-    for (int i = 25; i < 25 + NUM_AREA; ++i) {
-        buffer[i] = static_cast<char>(rose[i - 25]);
-    }
-
-    ssize_t bytesSent = sendto(socket_descriptor, buffer, sizeof(buffer), 0,
+    bytesSent = sendto(socket_descriptor, data, sizeof(data), 0,
                                (struct sockaddr *) &server_address, sizeof(server_address));
 
     if (bytesSent == -1) {
@@ -60,6 +57,19 @@ void OutputProcessor::pass_one_message(const OutputStructure &output) {
         throw SeaVisionException(buff.str().c_str());
     }
 
+    uint8_t rose[NUM_AREA];
+    for (int i = 0; i < NUM_AREA; ++i) {
+        rose[i] = static_cast<uint8_t>(output.rose[i] * 100);
+    }
+
+    bytesSent = sendto(socket_descriptor, rose, sizeof(rose), 0,
+                               (struct sockaddr *) &server_address, sizeof(server_address));
+
+    if (bytesSent == -1) {
+        std::stringstream buff;
+        buff << "Error when sending a data!";
+        throw SeaVisionException(buff.str().c_str());
+    }
 }
 
 OutputProcessor::~OutputProcessor() {

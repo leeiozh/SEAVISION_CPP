@@ -27,7 +27,7 @@ public:
 
     OutputProcessor(const std::string &ip, int port);
 
-    void pass_one_message(const OutputStructure &output);
+    void pass_message(const OutputStructure &output);
 
     ~OutputProcessor();
 };
