@@ -23,7 +23,7 @@ TEST(TEST_FOURIER, FOURIER) {
     Mesh mesh = Mesh(params, STEP);
     Area area = Area(720, 720, 0, 0, 0);
 
-    Eigen::MatrixXd res_back = mesh.calc_back(area, res_inp.bcksctr);
+    Eigen::MatrixXd res_back = mesh.calc_back(area, res_inp.prli.bcksctr);
 
     DispersionCurve dispersionCurve(256, 15, 32, K_MAX);
     Eigen::MatrixXcd res = dispersionCurve.calc_fourier_2d_one(res_back);
@@ -53,7 +53,7 @@ TEST(TEST_WELCH, WELCH) {
 
     Eigen::VectorX<Eigen::MatrixXd> res_back(num_t);
     for (int i = 0; i < num_t; ++i) {
-        res_back[i] = mesh.calc_back(area, res_inp[i].bcksctr);
+        res_back[i] = mesh.calc_back(area, res_inp[i].prli.bcksctr);
         dispersionCurve.update(i, res_back[i]);
     }
 

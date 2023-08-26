@@ -40,16 +40,16 @@ namespace SeaVision {
     }
 }*/
 
-
+/*
 TEST(TEST_MAIN, DATA) {
     std::string path("/storage/tartar/DATA/RADAR/src/");
     ReadParameters params{0, AREA_SIZE, AREA_SIZE};
     auto disp_direct = DispersionDirect(NUM_AREA);
     Mesh mesh = Mesh(params, STEP);
 
-    /*auto curr_path = std::filesystem::current_path().string();
+    auto curr_path = std::filesystem::current_path().string();
     curr_path = curr_path.substr(0, curr_path.size() - 5);
-    std::cout << curr_path << std::endl;*/
+    std::cout << curr_path << std::endl;
 
     std::string curr_path = "/storage/kubrick/ezhova/SEAVISION_CPP/";
 
@@ -119,14 +119,15 @@ TEST(TEST_MAIN, DATA) {
             out2 << j << ",";
         }
 
-        /*std::ofstream out22(curr_path + "results/freq_spec" + std::to_string(i) + ".csv");
+        std::ofstream out22(curr_path + "results/freq_spec" + std::to_string(i) + ".csv");
         for (double j: res.freq_spec) {
             out22 << j << ",";
-        }*/
+        }
     }
 }
-
+*/
 } // namespace
+
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

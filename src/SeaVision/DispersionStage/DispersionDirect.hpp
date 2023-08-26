@@ -17,13 +17,13 @@ class DispersionDirect {
      * class for function of search zone with the clearest signal by calculating deviation of set backscatters
      */
 private:
-    double curr_az; // current azimuth of zone with max deviation (degrees)
-    int curr_az_ind; // index of zone with max deviation (from 0 to az_zone)
-    int az_zone; // number of zones split by azimuth
+    double curr_az = 0.; // current azimuth of zone with max deviation (degrees)
+    int curr_az_ind = 0; // index of zone with max deviation (from 0 to az_zone)
+    int az_zone = NUM_AREA; // number of zones split by azimuth
 
-    Eigen::VectorXi curr_std; // current index of zone with max deviation of lines (from 0 to az_zone)
-    Eigen::VectorXd curr_len; // current length
-    Eigen::VectorXd rose; // wind rose with deviations of lines of different zones
+    Eigen::VectorXi curr_std = Eigen::VectorXi::Zero(NUM_SYSTEMS); // current index of zone with max deviation of lines (from 0 to az_zone)
+    Eigen::VectorXd curr_len = Eigen::VectorXd::Zero(NUM_SYSTEMS); // current length
+    Eigen::VectorXd rose = Eigen::VectorXd::Zero(NUM_AREA); // wind rose with deviations of lines of different zones
 
 public:
 
@@ -79,6 +79,8 @@ public:
     [[nodiscard]] Eigen::VectorXd get_rose() const;
 
     [[nodiscard]] Eigen::VectorXd get_len() const;
+
+    [[nodiscard]] Eigen::VectorXd get_dirs() const;
 };
 
 } // namespace

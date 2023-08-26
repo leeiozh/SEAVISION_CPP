@@ -2,18 +2,12 @@
 // Created by leeiozh on 6/21/23.
 //
 
+#include <iostream>
 #include "DispersionDirect.hpp"
 
 namespace SeaVision {
 
-DispersionDirect::DispersionDirect(const int az_zone) : az_zone(az_zone) {
-    curr_az = 0.;
-    curr_az_ind = 0;
-    rose.resize(az_zone);
-    curr_std = Eigen::VectorXi::Zero(NUM_SYSTEMS);
-    curr_len = Eigen::VectorXd::Zero(NUM_SYSTEMS);
-};
-
+DispersionDirect::DispersionDirect(const int az_zone) : az_zone(az_zone) {}
 
 int DispersionDirect::search_area(const std::vector<Eigen::MatrixXi> &data) {
 
@@ -139,10 +133,8 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
             sum[j] = trim.row(j).sum(); // summing throw vertical
         }
 
-        fftw_complex *out;
-        out = (fftw_complex *) malloc(sum.size() * sizeof(fftw_complex));
-        fftw_complex *inp;
-        inp = (fftw_complex *) malloc(sum.size() * sizeof(fftw_complex));
+        auto *out = (fftw_complex *) fftw_malloc(sum.size() * sizeof(fftw_complex));
+        auto *inp = (fftw_complex *) fftw_malloc(sum.size() * sizeof(fftw_complex));
 
         fftw_plan plan = fftw_plan_dft_1d(static_cast<int>(sum.size()), inp, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
@@ -150,7 +142,9 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
             inp[t][0] = sum[t];
             inp[t][1] = 0.;
         }
+
         fftw_execute(plan);
+
         int half_size = std::floor(sum.size() / 2);
 
         Eigen::VectorXd spec = Eigen::VectorXd::Zero(half_size);
@@ -158,10 +152,10 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
         for (int t = 4; t < half_size; ++t) {
             spec[t] = out[t][0] * out[t][0] + out[t][1] * out[t][1]; // square norm
         }
+
         fftw_destroy_plan(plan);
-        fftw_cleanup();
-        fftw_free(out);
         fftw_free(inp);
+        fftw_free(out);
 
         curr_len[n] = STEP * static_cast<double>(spec.size()) / static_cast<double>(argumax(spec));
     }
@@ -189,5 +183,15 @@ Eigen::VectorXd DispersionDirect::get_len() const {
     return curr_len;
 }
 
+Eigen::VectorXd DispersionDirect::get_dirs() const {
+
+    Eigen::VectorXd res = Eigen::VectorXd::Zero(NUM_SYSTEMS);
+
+    for (int i = 0; i < NUM_SYSTEMS; ++i) {
+        res[i] = static_cast<double>(curr_std[i]) / NUM_AREA * 360.;
+    }
+
+    return res;
+}
 
 } // namespace

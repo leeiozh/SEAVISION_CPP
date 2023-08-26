@@ -21,7 +21,7 @@ TEST(TEST_FILE_READER, READER) {
 
     Mesh mesh = Mesh(params, 1.875);
     Area area = Area(720, 720, 0, 0, 0);
-    Eigen::MatrixXd res = mesh.calc_back(area, res_inp.bcksctr);
+    Eigen::MatrixXd res = mesh.calc_back(area, res_inp.prli.bcksctr);
 
     ASSERT_FALSE(std::abs(res(0, 0) - 177.0) > TOLERANCE);
     ASSERT_FALSE(std::abs(res(100, 100) - 116.0) > TOLERANCE);

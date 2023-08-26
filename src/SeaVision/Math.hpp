@@ -17,7 +17,7 @@ int argumax(const Eigen::VectorXd &vec);
 
 int count_zeros_mean(const Eigen::VectorXd &vec);
 
-int get_median_direction(const Eigen::VectorXi &dir_ind, bool change_mean);
+int get_median(const Eigen::VectorXi &dir_ind, bool change_mean);
 
 std::pair<int, int> argumax(const Eigen::MatrixXd &mat);
 

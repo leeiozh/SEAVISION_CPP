@@ -15,7 +15,8 @@ DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double
 void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
 
     data_fourier[index % max_index] = calc_fourier_2d_one(data);
-    if (index >= max_index + MEAN) {
+
+    if (index >= max_index) {
         auto welch = calc_welch(index);
         picture = calc_abs_wave_num(welch);
         picture /= picture.maxCoeff();
@@ -32,11 +33,9 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
         throw SeaVisionException(buff.str().c_str());
     }
 
-    fftw_complex *f_pic;
-    f_pic = (fftw_complex *) malloc(data.size() * sizeof(fftw_complex));
+    fftw_complex *f_pic = (fftw_complex *) fftw_malloc(data.size() * sizeof(fftw_complex));
 
-    fftw_complex *pic_fftw;
-    pic_fftw = (fftw_complex *) malloc(data.size() * sizeof(fftw_complex));
+    fftw_complex *pic_fftw = (fftw_complex *) fftw_malloc(data.size() * sizeof(fftw_complex));
 
     fftw_plan plan = fftw_plan_dft_2d(static_cast<int>(data.rows()), static_cast<int>(data.cols()), pic_fftw, f_pic,
                                       FFTW_FORWARD, FFTW_ESTIMATE);
@@ -57,7 +56,6 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     }
 
     fftw_destroy_plan(plan);
-    fftw_cleanup();
     fftw_free(f_pic);
     fftw_free(pic_fftw);
 
@@ -91,10 +89,10 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch(int index) const {
 
     for (int i = 0; i < data_fourier[0].rows(); ++i) {
         for (int j = 0; j < data_fourier[0].cols(); ++j) {
-            fftw_complex *out;
-            out = (fftw_complex *) malloc(max_index * sizeof(fftw_complex));
-            fftw_complex *inp;
-            inp = (fftw_complex *) malloc(max_index * sizeof(fftw_complex));
+
+            fftw_complex *out = (fftw_complex *) fftw_malloc(max_index * sizeof(fftw_complex));
+
+            fftw_complex *inp = (fftw_complex *) fftw_malloc(max_index * sizeof(fftw_complex));
 
             fftw_plan plan = fftw_plan_dft_1d(max_index, inp, out, FFTW_FORWARD, FFTW_ESTIMATE);
 

@@ -61,7 +61,7 @@ int count_zeros_mean(const Eigen::VectorXd &vec) {
     return res;
 }
 
-int get_median_direction(const Eigen::VectorXi &dir_ind, bool change_mean) {
+int get_median(const Eigen::VectorXi &dir_ind, bool change_mean) {
 
     if (change_mean) {
         auto copy_vec = Eigen::VectorXi(dir_ind);

@@ -5,8 +5,7 @@
 #ifndef SEAVISION_INPUTPROCESSOR_HPP
 #define SEAVISION_INPUTPROCESSOR_HPP
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#include <winsock2.h>
 #include <string>
 #include <utility>
 #include <unistd.h>
@@ -22,10 +21,11 @@ class InputProcessor {
      */
 
 protected:
-    std::string ip; // IP of current machine
+    WSADATA wsaData;
     int port; // port for receiving data
     int socket_descriptor; // internal stuff
-    struct sockaddr_in server_address{}; // internal stuff
+    sockaddr_in server_address; // internal stuff
+
     ReadParameters params; // parameters of reading (number of lines through distance)
     InputPRLI curr_prli; // current PRLI for filling
     InputConditions curr_cond; // current conditions for filling
@@ -37,11 +37,10 @@ protected:
 public:
     /**
      * constructor of input processor
-     * @param ip IP of current machine
      * @param port port for receiving data
      * @param params parameters of reading (number of lines through distance)
      */
-    InputProcessor(const std::string &ip, int port, const ReadParameters& params);
+    InputProcessor(int port, const ReadParameters& params);
 
     /**
      * listening first byte of each parcel

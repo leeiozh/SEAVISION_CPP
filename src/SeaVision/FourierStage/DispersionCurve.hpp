@@ -20,15 +20,15 @@ class DispersionCurve {
      */
 
 protected:
-    int width = DELTA_FREQ; // width of cut curve
-    int cut_index = CUT_NUM; // size of trimmed array after fourier transform
-    int max_index = FOUR_NUM; // size of array for spectrum calculation
-    double max_wave_num = K_MAX; // maximum wave number
+    int width = DELTA_FREQ;                     // width of cut curve
+    int cut_index = CUT_NUM;                    // size of trimmed array after fourier transform
+    int max_index = FOUR_NUM;                   // size of array for spectrum calculation
+    double max_wave_num = K_MAX;                // maximum wave number
 
-    WaveStruct spectrum_struct; // spectrum parameters (m0, m1, peak_period, freq_spectrum)
+    WaveStruct spectrum_struct;                 // current spectrum parameters (m0, m1, peak_period, freq_spectrum)
 
     std::vector<Eigen::MatrixXcd> data_fourier; // array for spectrum calculation (3D)
-    Eigen::MatrixXd picture; // current curve picture (2D)
+    Eigen::MatrixXd picture;                    // current curve picture (2D)
 
 public:
 

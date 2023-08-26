@@ -24,22 +24,22 @@ namespace SeaVision {
 class MainProcess {
 
 private:
-    int index = 0; // index of current shot
+    int index = 0;                                      // index of current shot
+    std::vector<OutputStructure> mean_output;           // vector of MEAN last results
 
-    Eigen::VectorXd hgd; // last MEAN course from vessel gyroscope
-    Eigen::VectorXd speed; // last MEAN speed from vessel navigation
+    Eigen::VectorXd hgd = Eigen::VectorXd::Zero(MEAN);        // last MEAN values of course from vessel gyroscope
+    Eigen::VectorXd speed = Eigen::VectorXd::Zero(MEAN);      // last MEAN values of speed from vessel navigation
+    Eigen::VectorXi dir_vec = Eigen::VectorXi::Zero(CHANGE_DIR_NUM_SHOTS); // vector of CDNS last main directions
+    int curr_dir = 0;                                   // index of current zone with the most contrast signal
 
-    std::shared_ptr<InputProcessor> inp_proc; // pointer on input proccesor
-    std::shared_ptr<OutputProcessor> output_proc; // pointer on output proccesor
+    std::unique_ptr<InputProcessor> inp_proc;           // pointer on input processor
+    std::unique_ptr<OutputProcessor> output_proc;       // pointer on output processor
 
-    std::shared_ptr<DispersionDirect> disp_direct; // pointer on area searcher
-    std::shared_ptr<Mesh> mesh; // pointer on mesh
-    std::vector<Area> area_vec; // vector of areas for speedy computations
-    std::shared_ptr<DispersionCurve> curve; // pointer on fourier stuff
+    std::unique_ptr<DispersionDirect> disp_direct;      // pointer on dispersion calculator
+    std::unique_ptr<DispersionCurve> curve;             // pointer on fourier calculator
 
-    Eigen::VectorXi dir_vec; // vector of CHANGE_DIR_NUM_SHOTS last main directions
-    int curr_dir; // index of current zone with the most contrast signal
-    std::vector<OutputStructure> mean_output; // vector of MEAN last results
+    std::unique_ptr<Mesh> mesh;                         // pointer on mesh
+    std::vector<Area> area_vec;                         // vector of areas for speedy computations
 
 public:
     /**
@@ -50,15 +50,32 @@ public:
      * @param mesh pointer on mesh
      * @param curve_vec pointer on fourier stuff
      */
-    MainProcess(const std::shared_ptr<InputProcessor> &inp_proc, const std::shared_ptr<OutputProcessor> &output_proc,
-                const std::shared_ptr<DispersionDirect> &disp_direct, const std::shared_ptr<Mesh> &mesh,
-                const std::shared_ptr<DispersionCurve> &curve);
+    MainProcess(std::unique_ptr<InputProcessor> inp_proc, std::unique_ptr<OutputProcessor> output_proc,
+                std::unique_ptr<DispersionDirect> disp_direct, std::unique_ptr<Mesh> mesh,
+                std::unique_ptr<DispersionCurve> curve);
 
     /**
      * update and process next shot
      * @param input InputStructure of current shot
      */
     void update(const InputStructure &input);
+
+    /**
+     * main function to run a program
+     */
+    void run_realtime();
+
+    /**
+     * getter of last results
+     * @return OutputStructure with results
+     */
+    OutputStructure make_output();
+
+    /**
+     * getter of average MEAN result
+     * @return OutputStructure with average results
+     */
+    OutputStructure get_mean_output();
 
     /**
      * running processing queue of shots
@@ -72,16 +89,6 @@ public:
      * @return OutputStructures with results
      */
     //OutputStructure run_debug();
-
-    void run_realtime();
-
-    /**
-     * getter of last results
-     * @return OutputStructure with results
-     */
-    OutputStructure make_output();
-
-    OutputStructure get_mean_output();
 
 };
 

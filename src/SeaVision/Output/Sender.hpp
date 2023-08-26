@@ -5,8 +5,7 @@
 #ifndef SEAVISION_SENDER_HPP
 #define SEAVISION_SENDER_HPP
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#include <winsock2.h>
 #include <string>
 #include <utility>
 #include <unistd.h>
@@ -19,10 +18,11 @@ namespace SeaVision {
 class Sender {
 
 protected:
+    WSADATA wsaData;
+    SOCKET descriptor;
+    sockaddr_in address;
     std::string ip;
     int port;
-    int socket_descriptor;
-    struct sockaddr_in server_address{};
 
     std::shared_ptr<FileReader> file_reader;
 
