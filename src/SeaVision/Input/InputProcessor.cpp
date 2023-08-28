@@ -93,7 +93,6 @@ namespace SeaVision {
         if (bytesRead == -1 or num >= 4096 or num < 0 or curr_prli.step < 1.)  // adequacy check
             throw SeaVisionException("Error when reading a line number or step!");
 
-
         unsigned char part_all[3]; // second byte is 4, third byte reserved
         bytesRead = recv(socket_descriptor, reinterpret_cast<char *>(part_all), sizeof(part_all), 0);
 
@@ -118,8 +117,8 @@ namespace SeaVision {
         }
 
         if (part == 0) {
-            if (ready_vec(num)) double_counter++; // finish filling if we go second time
-            else ready_vec(num) = true; // think that line with this number is ready
+            if (ready_vec(num)) double_counter++; // finish filling if we go fourth time on one place
+            else ready_vec(num) = true;           // think that line with this number is ready
         }
         if (double_counter >= 4) return static_cast<int>(ready_vec.size());
 
@@ -132,7 +131,6 @@ namespace SeaVision {
         int prli_ready = 0.; // number of ready lines
         bool cond_ready = false; // flag if conditions are ready
         ready_vec = Eigen::VectorX<bool>::Zero(params.size_angle); // zeroing vector of readiness
-        //curr_prli.bcksctr = Eigen::MatrixXi::Zero(params.line_size, params.size_angle); // zeroing result backscatter
 
         const auto start = std::chrono::steady_clock::now();
         auto end = std::chrono::steady_clock::now();

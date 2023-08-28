@@ -40,6 +40,7 @@ private:
 
     std::unique_ptr<Mesh> mesh;                         // pointer on mesh
     std::vector<Area> area_vec;                         // vector of areas for speedy computations
+    bool four_or_disp = true;
 
 public:
     /**
@@ -52,7 +53,7 @@ public:
      */
     MainProcess(std::unique_ptr<InputProcessor> inp_proc, std::unique_ptr<OutputProcessor> output_proc,
                 std::unique_ptr<DispersionDirect> disp_direct, std::unique_ptr<Mesh> mesh,
-                std::unique_ptr<DispersionCurve> curve);
+                std::unique_ptr<DispersionCurve> curve, bool four_or_disp);
 
     /**
      * update and process next shot

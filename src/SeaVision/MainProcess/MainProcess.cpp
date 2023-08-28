@@ -8,9 +8,9 @@ namespace SeaVision {
 
 MainProcess::MainProcess(std::unique_ptr<InputProcessor> inp_proc, std::unique_ptr<OutputProcessor> output_proc,
                          std::unique_ptr<DispersionDirect> disp_direct, std::unique_ptr<Mesh> mesh,
-                         std::unique_ptr<DispersionCurve> curve) :
+                         std::unique_ptr<DispersionCurve> curve, bool four_or_disp) :
         inp_proc(std::move(inp_proc)), output_proc(std::move(output_proc)), disp_direct(std::move(disp_direct)),
-        mesh(std::move(mesh)), curve(std::move(curve)) {
+        mesh(std::move(mesh)), curve(std::move(curve)), four_or_disp(four_or_disp) {
 
     mean_output.resize(MEAN);         // default constructor of OutputStructure is set zero
 
@@ -27,7 +27,7 @@ void MainProcess::run_realtime() {
     std::queue<InputStructure> data_queue;     // queue of last not more MEAN results
     std::mutex mtx;                            // mutex for changing queue when input processor want to change it
 
-    std::cout << "start" << std::endl;
+    std::cout << "start run_realtime" << std::endl;
 
     std::thread reader_thread([&]() { // thread for reading data and convert it to InputStructure
 
@@ -137,6 +137,8 @@ OutputStructure MainProcess::make_output() {
     res.len = disp_direct->get_len();
     res.dir = disp_direct->get_dirs();
 
+    if (!four_or_disp) res.swh = disp_direct->get_swh();
+
     WaveStruct spec = curve->get_params();
     res.freq_spec = spec.freq_spec;
 
@@ -147,18 +149,21 @@ OutputStructure MainProcess::make_output() {
 
         if (cond) {
             res.per[i] = 0.;
-            res.swh[i] = 0.;
             res.m0[i] = 0.;
             res.vcos[i] = 0.;
+
+            if (four_or_disp) res.swh[i] = 0.;
 
             if (index >= FOUR_NUM) {
                 res.len[i] = 0.;
                 res.dir[i] = 0.;
+                res.swh[i] = 0.;
             }
 
         } else {
             res.per[i] = spec.peak_period[i];
-            res.swh[i] = A_COEFF + B_COEFF * std::sqrt(spec.m0[i]);
+
+            if (four_or_disp) res.swh[i] = A_COEFF + B_COEFF * std::sqrt(spec.m0[i]);
             res.m0[i] = spec.m0[i];
 
             // correct on main wave has passing or opposite direction
@@ -189,16 +194,16 @@ OutputStructure MainProcess::get_mean_output() {
     if (index < MEAN) size = index;
     else if (index > FOUR_NUM && index < FOUR_NUM + MEAN) size = index - FOUR_NUM;
 
-    for (auto &j: mean_output) {
-        res.freq_spec += j.freq_spec / size;
-        res.rose += j.rose / size;
+    for (int j = 0; j < size; ++j) {
+        res.freq_spec += mean_output[j].freq_spec / size;
+        res.rose += mean_output[j].rose / size;
         for (int i = 0; i < NUM_SYSTEMS; ++i) {
-            res.swh[i] += j.swh[i] / size;
-            res.per[i] += j.per[i] / size;
-            res.dir[i] += j.dir[i] / size;
-            res.len[i] += j.len[i] / size;
-            res.m0[i] += j.m0[i] / size;
-            res.vcos[i] += j.vcos[i] / size;
+            res.swh[i] += mean_output[j].swh[i] / size;
+            res.per[i] += mean_output[j].per[i] / size;
+            res.dir[i] += mean_output[j].dir[i] / size;
+            res.len[i] += mean_output[j].len[i] / size;
+            res.m0[i] += mean_output[j].m0[i] / size;
+            res.vcos[i] += mean_output[j].vcos[i] / size;
         }
     }
 

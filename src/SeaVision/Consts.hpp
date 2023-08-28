@@ -11,6 +11,8 @@ namespace SeaVision {
 
 const int NUM_SYSTEMS = 3;
 
+extern bool FOUR_OR_DISP;
+
 const double TURN_PERIOD_DEF = 2.5; // period of radars turn in seconds
 extern double TURN_PERIOD;
 
@@ -37,13 +39,13 @@ const int FOUR_NUM = 256; // number of shots for Welch transform (must be a pose
 
 const double BETA = -1.2; // magic power of wave number (see Borge, 2008)
 
-const double A_COEFF = 0.42975475; // coefficient in SWH = A + B \sqrt(SNR)
+const double A_COEFF = 1.0172569; // coefficient in SWH = A + B \sqrt(SNR)
 
-const double B_COEFF = 4.47947967; // coefficient in SWH = A + B \sqrt(SNR)
+const double B_COEFF = 4.32733302; // coefficient in SWH = A + B \sqrt(SNR)
 
-const double C_COEFF = 0.42975475; // coefficient in SWH = C + D \sqrt(MAX_DISP)
+const double C_COEFF = 0.05346973; // coefficient in SWH = C + D \sqrt(MAX_DISP)
 
-const double D_COEFF = 4.47947967; // coefficient in SWH = C + D \sqrt(MAX_DISP)
+const double D_COEFF = 0.10920687; // coefficient in SWH = C + D \sqrt(MAX_DISP)
 
 const double STEP = 1.875; // resolution of image (distance in meters between neighbors cells)
 

@@ -9,6 +9,7 @@ namespace SeaVision {
 
 int NUM_AREA, MEAN;
 double TURN_PERIOD, MAX_WAIT_SHOT_TIME;
+bool FOUR_OR_DISP;
 
 ConfigReader::ConfigReader(const std::string &path) : path(path) {
 
@@ -77,6 +78,14 @@ ConfigReader::ConfigReader(const std::string &path) : path(path) {
         MAX_WAIT_SHOT_TIME = 2 * TURN_PERIOD;
     } else {
         MAX_WAIT_SHOT_TIME = std::stoi(data["MAX_WAIT_SHOT_TIME"]);
+    }
+
+    if (data["FOUR_OR_DISP"].empty()) {
+        std::cout << "No FOUR_OR_DISP in config file! I will use default value >> true " << std::endl;
+        FOUR_OR_DISP = true;
+    } else {
+        if (data["FOUR_OR_DISP"] == "false") FOUR_OR_DISP = false;
+        else FOUR_OR_DISP = true;
     }
 }
 

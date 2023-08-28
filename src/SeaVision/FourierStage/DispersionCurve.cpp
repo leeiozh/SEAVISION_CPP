@@ -2,6 +2,7 @@
 // Created by leeiozh on 16.04.23.
 //
 
+#include <iostream>
 #include "DispersionCurve.hpp"
 
 
@@ -64,15 +65,14 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
 
 double DispersionCurve::calc_vcosalpha(const std::vector<double> &omega, const std::vector<double> &k_num,
                                        const std::vector<double> &sigma) {
-    double k_num_sq_sum = 0.;
-    double omega_sum = 0.;
-    double k_num_sum = 0.;
+    double up_sum = 0.;  // sum k_i / sigma^2_i * (omega_i - \sqrt{g * k_i})
+    double low_sum = 0.; // sum k_i / sigma^2_i
+
     for (int i = 0; i < omega.size(); ++i) {
-        k_num_sq_sum += std::sqrt(k_num[i]) / sigma[i];
-        omega_sum += omega[i] / sigma[i];
-        k_num_sum += k_num[i] / sigma[i];
+        up_sum += k_num[i] / sigma[i] / sigma[i] * (2 * M_PI * omega[i] - std::sqrt(G_COEFF * k_num[i]));
+        low_sum += k_num[i] / sigma[i] / sigma[i];
     }
-    return (omega_sum * M_PI * 2. - std::sqrt(G_COEFF) * k_num_sq_sum) / k_num_sum;
+    return up_sum / low_sum;
 }
 
 double DispersionCurve::dispersion_func(const double k_num, const double vcosalpha) {
@@ -179,8 +179,14 @@ void DispersionCurve::calc_curve() {
         spectrum_struct.freq_spec[i] = ss_fir[i] / nn_fir[i];
     }
 
-    spectrum_struct.peak_period[0] = TURN_PERIOD / (static_cast<double>(argumax(spectrum_struct.freq_spec)) /
-                                                    static_cast<double>(spectrum_struct.freq_spec.size()));
+    int spec_freq_argmax = argumax(spectrum_struct.freq_spec);
+    int spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_fir.first.row(spec_freq_argmax)));
+    double freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
+
+    spectrum_struct.peak_period[0] = TURN_PERIOD / freq_true;
+
+    //spectrum_struct.peak_period[0] = TURN_PERIOD / (static_cast<double>(spec_freq_argmax) /
+    //                                                static_cast<double>(spectrum_struct.freq_spec.size()));
 
     spectrum_struct.m0[0] = trapezoid(ss_fir, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
@@ -197,7 +203,13 @@ void DispersionCurve::calc_curve() {
         freq_spec_sec[i] = ss_sec[i] / nn_fir[i];
     }
 
-    spectrum_struct.peak_period[1] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_sec)) / max_index);
+    spec_freq_argmax = argumax(freq_spec_sec);
+    spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_sec.first.row(spec_freq_argmax)));
+    freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
+
+    spectrum_struct.peak_period[1] = TURN_PERIOD / freq_true;
+    //spectrum_struct.peak_period[1] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_sec)) / max_index);
+
     spectrum_struct.m0[1] = trapezoid(ss_sec, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
     auto signal_noise_th = proc_one_curve(signal_noise_sec.second, 2); // we try to identify second system
@@ -212,8 +224,12 @@ void DispersionCurve::calc_curve() {
         }
         freq_spec_th[i] = ss_th[i] / nn_fir[i];
     }
+    spec_freq_argmax = argumax(freq_spec_th);
+    spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_th.first.row(spec_freq_argmax)));
+    freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
 
-    spectrum_struct.peak_period[2] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_th)) / max_index);
+    spectrum_struct.peak_period[2] = TURN_PERIOD / freq_true;
+    // spectrum_struct.peak_period[2] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_th)) / max_index);
     spectrum_struct.m0[2] = trapezoid(ss_th, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
 }

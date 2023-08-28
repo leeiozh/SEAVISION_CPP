@@ -15,10 +15,15 @@ int main() {
     try {
 
         ConfigReader config(curr_path.substr(0, curr_path.size() - 15) + "config.txt");
+
+        std::cout << "config read succesfully" << std::endl;
+
         ReadParameters params{0, 1024, 1024};
         auto disp_direct = DispersionDirect(NUM_AREA);
 
         Mesh mesh = Mesh(params, STEP);
+
+        std::cout << "mesh creates succesfully" << std::endl;
 
         InputProcessor inp_proc(config.get_curr_port(), params);
         OutputProcessor output_proc(config.get_ip(), config.get_serv_port());
@@ -28,7 +33,8 @@ int main() {
         MainProcess proc(std::make_unique<InputProcessor>(inp_proc),
                          std::make_unique<OutputProcessor>(output_proc),
                          std::make_unique<DispersionDirect>(disp_direct),
-                         std::make_unique<Mesh>(mesh), std::make_unique<DispersionCurve>(curve));
+                         std::make_unique<Mesh>(mesh),
+                         std::make_unique<DispersionCurve>(curve), FOUR_OR_DISP);
 
         proc.run_realtime();
 

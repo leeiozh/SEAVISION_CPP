@@ -74,9 +74,11 @@ public:
 
     /**
      * getter of wind rose with coefficient of verticality wave crests
-     * @return wind rose with coefficient of verticality wave crests TODO convert to SWH !!!
+     * @return wind rose with coefficient of verticality wave crests
      */
     [[nodiscard]] Eigen::VectorXd get_rose() const;
+
+    [[nodiscard]] Eigen::VectorXd get_swh() const;
 
     [[nodiscard]] Eigen::VectorXd get_len() const;
 

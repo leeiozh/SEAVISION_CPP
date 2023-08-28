@@ -166,7 +166,7 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
 Eigen::VectorXd DispersionDirect::get_rose() const {
     Eigen::VectorXd rose_height = Eigen::VectorXd::Zero(rose.size());
     for (int i = 0; i < rose.size(); ++i) {
-        rose_height[i] = C_COEFF + D_COEFF * std::sqrt(rose[i]);
+        rose_height[i] = C_COEFF + D_COEFF * rose[i] * rose[i];
     }
     return rose_height;
 }
@@ -189,6 +189,17 @@ Eigen::VectorXd DispersionDirect::get_dirs() const {
 
     for (int i = 0; i < NUM_SYSTEMS; ++i) {
         res[i] = static_cast<double>(curr_std[i]) / NUM_AREA * 360.;
+    }
+
+    return res;
+}
+
+Eigen::VectorXd DispersionDirect::get_swh() const {
+    Eigen::VectorXd res = Eigen::VectorXd::Zero(NUM_SYSTEMS);
+
+    for (int i = 0; i < NUM_SYSTEMS; ++i) {
+        //res[i] = C_COEFF + D_COEFF * rose[curr_std[i]] * rose[curr_std[i]];
+        res[i] = std::sqrt(rose[curr_std[i]] - C_COEFF) / D_COEFF;
     }
 
     return res;
