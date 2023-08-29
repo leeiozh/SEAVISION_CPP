@@ -25,7 +25,7 @@ namespace SeaVision {
         address.sin_addr.s_addr = inet_addr(ip.c_str());
     }
 
-    void Sender::pass_cond(const SeaVision::InputConditions &cond) {
+    void Sender::pass_cond(const SeaVision::InputNavi &cond) {
 
         unsigned char first_byte = 0x1;
         sendto(descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
@@ -103,7 +103,7 @@ namespace SeaVision {
     void Sender::pass_one_file(const std::string &file_name) {
 
         InputStructure inp = file_reader->read_one_file(file_name);
-        pass_cond(inp.cond);
+        pass_cond(inp.navi);
         std::cout << file_name << " conditions send" << std::endl;
         pass_prli(inp.prli);
         std::cout << file_name << " prli send" << std::endl;

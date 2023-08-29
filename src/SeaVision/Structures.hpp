@@ -6,6 +6,7 @@
 #define SEAVISION_STRUCTURES_HPP
 
 #include <Eigen/Dense>
+#include <winsock2.h>
 #include "SeaVision/Consts.hpp"
 
 namespace SeaVision {
@@ -19,12 +20,11 @@ struct WaveStruct {
 
 struct InputPRLI {
     double step; // difference between neighbour cells in meters
-    int size_dist = 4096; // AREA_DISTANCE_PX; // number of read lines (distance)
-    int size_az = 4096; //AREA_AZIMUTH_PX; // number of read rows (azimuths)
-    Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(size_dist, size_az); // read backscatter in polar
+    int pulse;   // 0 = none, 1 = SP1, 2 = MP1, 3 = LP1
+    Eigen::MatrixXi bcksctr = Eigen::MatrixXi::Zero(AREA_READ_DIST_PX, AREA_AZIMUTH_PX); // read backscatter in polar
 };
 
-struct InputConditions {
+struct InputNavi {
     double cog = 0.;
     double sog = 0.;
     double lat = 0.;
@@ -34,7 +34,7 @@ struct InputConditions {
 };
 
 struct InputStructure {
-    InputConditions cond;
+    InputNavi navi;
     InputPRLI prli;
 };
 
@@ -59,6 +59,11 @@ struct OutputStructure {
     Eigen::VectorXd freq_spec = Eigen::VectorXd::Zero(FOUR_NUM);
     Eigen::VectorXd rose = Eigen::VectorXd::Zero(NUM_AREA);
 
+};
+
+struct SocketParams {
+    SOCKET socket_descriptor;
+    sockaddr_in server_address;
 };
 
 } // namespace

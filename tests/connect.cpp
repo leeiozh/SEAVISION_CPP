@@ -18,14 +18,14 @@ int main() {
 
         std::cout << "config read succesfully" << std::endl;
 
-        ReadParameters params{0, 1024, 1024};
+        ReadParameters params{0, 4096, 4096};
         auto disp_direct = DispersionDirect(NUM_AREA);
 
         Mesh mesh = Mesh(params, STEP);
 
         std::cout << "mesh creates succesfully" << std::endl;
 
-        InputProcessor inp_proc(config.get_curr_port(), params);
+        InputProcessor inp_proc(config.get_prli_port(), config.get_navi_port(), params);
         OutputProcessor output_proc(config.get_ip(), config.get_serv_port());
 
         auto curve = DispersionCurve(FOUR_NUM, DELTA_FREQ, CUT_NUM, K_MAX);

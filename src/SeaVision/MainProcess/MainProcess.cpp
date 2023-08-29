@@ -106,8 +106,20 @@ void MainProcess::run_realtime() {
 
 void MainProcess::update(const InputStructure &input) {
 
-    speed[index % MEAN] = input.cond.spd;               // update current vessel speed
-    hgd[index % MEAN] = input.cond.hdg;                 // update current vessel heading
+    if (index % 16 == 0) {
+
+        std::ofstream out("C:/ocean/SEAVISION_CPP/back" + std::to_string(index) + ".csv");
+
+        for (int i = 0; i < input.prli.bcksctr.rows(); ++i) {
+            for (int j = 0; j < input.prli.bcksctr.cols(); ++j) {
+                out << input.prli.bcksctr(i, j) << ",";
+            }
+            out << std::endl;
+        }
+    }
+
+    speed[index % MEAN] = input.navi.spd;               // update current vessel speed
+    hgd[index % MEAN] = input.navi.hdg;                 // update current vessel heading
 
     // find NUM_SYSTEMS indexes of zones with the most contrast signal
     Eigen::VectorXi new_ang = disp_direct->calc_directions(input.prli.bcksctr, index);

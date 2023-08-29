@@ -10,7 +10,7 @@ FileReader::FileReader(std::string path, const ReadParameters params) : path(std
 
 InputStructure FileReader::read_one_file(const std::string &file_name) const {
 
-    InputConditions cond;
+    InputNavi cond;
     InputPRLI prli;
 
     std::ifstream file((path + file_name).c_str(), std::ios::in | std::ios::binary);
@@ -40,10 +40,10 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
         cond.spd = meta[7];
 
         // reading throw one azimuth
-        for (int i = 0; i < prli.size_az; ++i) {
+        for (int i = 0; i < AREA_AZIMUTH_PX; ++i) {
 
             // read full line throw current azimuth
-            uint8_t curr_line[prli.size_az];
+            uint8_t curr_line[AREA_AZIMUTH_PX];
             file.read((char *) &curr_line, sizeof(curr_line));
 
             // read some metadata which we don't used
@@ -53,8 +53,7 @@ InputStructure FileReader::read_one_file(const std::string &file_name) const {
             // record necessary data
 
             if (params.line_start == 0 && params.line_end == 0) {
-                prli.size_dist = prli.size_az;
-                for (int j = 0; j < prli.size_dist; ++j) {
+                for (int j = 0; j < AREA_READ_DIST_PX; ++j) {
                     prli.bcksctr(j, i) = curr_line[j];
                 }
             } else {

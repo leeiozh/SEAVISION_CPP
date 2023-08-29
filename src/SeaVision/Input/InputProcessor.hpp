@@ -21,14 +21,14 @@ class InputProcessor {
      */
 
 protected:
-    WSADATA wsaData;
-    int port; // port for receiving data
-    int socket_descriptor; // internal stuff
-    sockaddr_in server_address; // internal stuff
+    WSADATA wsaData{};
 
-    ReadParameters params; // parameters of reading (number of lines through distance)
-    InputPRLI curr_prli; // current PRLI for filling
-    InputConditions curr_cond; // current conditions for filling
+    SocketParams params_prli{};
+    SocketParams params_navi{};
+
+    ReadParameters params_read;     // parameters of reading (number of lines through distance)
+    InputPRLI curr_prli;            // current PRLI for filling
+    InputNavi curr_navi;      // current conditions for filling
     Eigen::VectorX<bool> ready_vec; // vector of readiness data
     int double_counter;
 
@@ -40,31 +40,21 @@ public:
      * @param port port for receiving data
      * @param params parameters of reading (number of lines through distance)
      */
-    InputProcessor(int port, const ReadParameters& params);
-
-    /**
-     * listening first byte of each parcel
-     * @return first byte
-     */
-    [[nodiscard]] unsigned char listen_first_byte() const;
-
-    /**
-     * listening next parcel and filling result InputStructure
-     * @return result InputStructure
-     */
-    [[nodiscard]] InputStructure listen_message();
-
-    /**
-     * listening conditions
-     * @return true if conditions listened successfully
-     */
-    [[nodiscard]] bool listen_conditions();
+    InputProcessor(int prli_port, int navi_port, const ReadParameters &params);
 
     /**
      * listening PRLI
      * @return number of ready lines (calculates using ready_vec)
      */
     [[nodiscard]] int listen_prli();
+
+    /**
+     * listening navigation conditions
+     * @return true if conditions listened successfully
+     */
+    [[nodiscard]] bool listen_navi();
+
+    [[nodiscard]] InputStructure listen_message();
 
     /**
      * destructor

@@ -198,8 +198,7 @@ Eigen::VectorXd DispersionDirect::get_swh() const {
     Eigen::VectorXd res = Eigen::VectorXd::Zero(NUM_SYSTEMS);
 
     for (int i = 0; i < NUM_SYSTEMS; ++i) {
-        //res[i] = C_COEFF + D_COEFF * rose[curr_std[i]] * rose[curr_std[i]];
-        res[i] = std::sqrt(rose[curr_std[i]] - C_COEFF) / D_COEFF;
+        res[i] = C_COEFF + D_COEFF * rose[curr_std[i]];
     }
 
     return res;

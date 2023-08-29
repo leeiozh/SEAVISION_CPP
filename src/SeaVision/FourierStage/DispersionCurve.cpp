@@ -70,7 +70,7 @@ double DispersionCurve::calc_vcosalpha(const std::vector<double> &omega, const s
 
     for (int i = 0; i < omega.size(); ++i) {
         up_sum += k_num[i] / sigma[i] / sigma[i] * (2 * M_PI * omega[i] - std::sqrt(G_COEFF * k_num[i]));
-        low_sum += k_num[i] / sigma[i] / sigma[i];
+        low_sum += k_num[i] * k_num[i] / sigma[i] / sigma[i];
     }
     return up_sum / low_sum;
 }

@@ -23,7 +23,9 @@ private:
 public:
     explicit ConfigReader(const std::string & path);
 
-    int get_curr_port();
+    int get_prli_port();
+
+    int get_navi_port();
 
     int get_serv_port();
 

@@ -25,44 +25,31 @@ OutputProcessor::OutputProcessor(const std::string &ip, const int port) : ip(ip)
 
 void OutputProcessor::pass_message(const OutputStructure &output) {
 
-    unsigned char first_byte = 0x5;
+    unsigned char data[1 + 8 * NUM_SYSTEMS + NUM_AREA * 2];
+    data[0] = 0x5;
 
-    ssize_t bytesSent = sendto(descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
-                               (struct sockaddr *) &address, sizeof(address));
+    for (int i = 0; i < NUM_SYSTEMS; ++i) {
+        data[1 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.swh[i] * 100)) & 0xFF);
+        data[2 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.swh[i] * 100) >> 8) & 0xFF);
 
-    if (bytesSent == -1) throw SeaVisionException("Error when sending a first byte of result!");
+        data[3 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.dir[i] * 100)) & 0xFF);
+        data[4 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.dir[i] * 100) >> 8) & 0xFF);
 
+        data[5 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.per[i] * 100)) & 0xFF);
+        data[6 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.per[i] * 100) >> 8) & 0xFF);
 
-    uint16_t data[12];
-
-    data[0] = static_cast<uint16_t>(output.swh[0] * 100);
-    data[1] = static_cast<uint16_t>(output.dir[0] * 100);
-    data[2] = static_cast<uint16_t>(output.per[0] * 100);
-    data[3] = static_cast<uint16_t>(output.len[0] * 100);
-    data[4] = static_cast<uint16_t>(output.swh[1] * 100);
-    data[5] = static_cast<uint16_t>(output.dir[1] * 100);
-    data[6] = static_cast<uint16_t>(output.per[1] * 100);
-    data[7] = static_cast<uint16_t>(output.len[1] * 100);
-    data[8] = static_cast<uint16_t>(output.swh[2] * 100);
-    data[9] = static_cast<uint16_t>(output.dir[2] * 100);
-    data[10] = static_cast<uint16_t>(output.per[2] * 100);
-    data[11] = static_cast<uint16_t>(output.len[2] * 100);
-
-    bytesSent = sendto(descriptor, reinterpret_cast<const char *>(data), sizeof(data), 0,
-                       (struct sockaddr *) &address, sizeof(address));
-
-    if (bytesSent == -1) throw SeaVisionException("Error when sending a wave parameters!");
-
-
-    uint8_t rose[NUM_AREA];
-    for (int i = 0; i < NUM_AREA; ++i) {
-        rose[i] = static_cast<uint8_t>(output.rose[i] * 100);
+        data[7 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.len[i] * 100)) & 0xFF);
+        data[8 + 8 * i] = static_cast<unsigned char>((static_cast<uint16_t>(output.len[i] * 100) >> 8) & 0xFF);
     }
 
-    bytesSent = sendto(descriptor, reinterpret_cast<const char *>(rose), sizeof(rose), 0,
-                       (struct sockaddr *) &address, sizeof(address));
+    for (int i = 0; i < NUM_AREA; ++i) {
+        data[25 + i * 2] = static_cast<unsigned char>((static_cast<uint16_t>(output.rose[i] * 100)) & 0xFF);
+        data[25 + i * 2 + 1] = static_cast<unsigned char>((static_cast<uint16_t>(output.rose[i] * 100) >> 8) & 0xFF);
+    }
 
-    if (bytesSent == -1) throw SeaVisionException("Error when sending a wind rose!");
+    ssize_t bytesSent = sendto(descriptor, reinterpret_cast<const char *>(&data), sizeof(data), 0,
+                               (struct sockaddr *) &address, sizeof(address));
+    if (bytesSent == -1) throw SeaVisionException("Error when sending a result!");
 
 }
 

@@ -91,26 +91,34 @@ ConfigReader::ConfigReader(const std::string &path) : path(path) {
 
 std::string ConfigReader::get_ip() {
 
-    std::string ip = !data["server_ip"].empty() ? data["server_ip"] : throw SeaVisionException(
-            "No server_ip in config file!");
+    std::string ip = !data["server_ip"].empty() ? data["server_ip"] :
+                     throw SeaVisionException("No server_ip in config file!");
 
     return ip;
 }
 
 int ConfigReader::get_serv_port() {
 
-    int port = !data["server_port"].empty() ? std::stoi(data["server_port"]) : throw SeaVisionException(
-            "No server_port in config file!");;
+    int server_port = !data["server_port"].empty() ? std::stoi(data["server_port"]) :
+               throw SeaVisionException("No server_port in config file!");;
 
-    return port;
+    return server_port;
 }
 
-int ConfigReader::get_curr_port() {
+int ConfigReader::get_prli_port() {
 
-    int port = !data["current_port"].empty() ? std::stoi(data["current_port"]) : throw SeaVisionException(
-            "No server_port in config file!");;
+    int prli_port = !data["prli_port"].empty() ? std::stoi(data["prli_port"]) :
+               throw SeaVisionException("No prli_port in config file!");;
 
-    return port;
+    return prli_port;
+}
+
+int ConfigReader::get_navi_port() {
+
+    int navi_port = !data["navi_port"].empty() ? std::stoi(data["navi_port"]) :
+               throw SeaVisionException("No navi_port in config file!");;
+
+    return navi_port;
 }
 
 } // SeaVision

@@ -18,7 +18,7 @@ namespace SeaVision {
 class Sender {
 
 protected:
-    WSADATA wsaData;
+    WSADATA wsaData{};
     SOCKET descriptor;
     sockaddr_in address;
     std::string ip;
@@ -34,7 +34,7 @@ public:
 
     void pass_one_file(const std::string &file_name);
 
-    void pass_cond(const InputConditions &cond);
+    void pass_cond(const InputNavi &cond);
 
     void pass_prli(const InputPRLI &prli);
 

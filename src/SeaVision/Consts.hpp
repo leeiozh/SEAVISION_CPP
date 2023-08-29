@@ -29,23 +29,25 @@ const int AREA_DISTANCE_PX = 448;
 
 const int AREA_AZIMUTH_PX = 4096;
 
+const int AREA_READ_DIST_PX = 4096;
+
 const double K_MAX = 2. * M_PI / static_cast<double>(AREA_SIZE) * static_cast<double>(CUT_NUM); // max wave number
 
 const double G_COEFF = 9.81; // gravity acceleration
 
 const int DELTA_FREQ = 13; // width of window for trimming a dispersion curve
 
-const int FOUR_NUM = 256; // number of shots for Welch transform (must be a poser of two)
+const int FOUR_NUM = 32; // number of shots for Welch transform (must be a power of two)
 
 const double BETA = -1.2; // magic power of wave number (see Borge, 2008)
 
-const double A_COEFF = 1.0172569; // coefficient in SWH = A + B \sqrt(SNR)
+const double A_COEFF = 0.95655; // coefficient in SWH = A + B \sqrt(SNR)
 
-const double B_COEFF = 4.32733302; // coefficient in SWH = A + B \sqrt(SNR)
+const double B_COEFF = 4.62937; // coefficient in SWH = A + B \sqrt(SNR)
 
-const double C_COEFF = 0.05346973; // coefficient in SWH = C + D \sqrt(MAX_DISP)
+const double C_COEFF = 0.2574829; // coefficient in SWH = C + D \sqrt(MAX_DISP)
 
-const double D_COEFF = 0.10920687; // coefficient in SWH = C + D \sqrt(MAX_DISP)
+const double D_COEFF = 2.4171893; // coefficient in SWH = C + D \sqrt(MAX_DISP)
 
 const double STEP = 1.875; // resolution of image (distance in meters between neighbors cells)
 

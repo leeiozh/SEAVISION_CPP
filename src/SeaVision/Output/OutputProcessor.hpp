@@ -17,9 +17,9 @@ namespace SeaVision {
 class OutputProcessor {
 
 protected:
-    WSADATA wsaData;
+    WSADATA wsaData{};
     SOCKET descriptor;
-    sockaddr_in address;
+    sockaddr_in address{};
     std::string ip;
     int port;
 
