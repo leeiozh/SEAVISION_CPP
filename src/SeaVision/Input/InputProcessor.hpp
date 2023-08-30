@@ -23,16 +23,16 @@ class InputProcessor {
 protected:
     WSADATA wsaData{};
 
-    SocketParams params_prli{};
-    SocketParams params_navi{};
+    SocketParams params_prli{};     // internal socket parameters
+    SocketParams params_navi{};     // internal socket parameters
 
     ReadParameters params_read;     // parameters of reading (number of lines through distance)
-    InputPRLI curr_prli;            // current PRLI for filling
-    InputNavi curr_navi;      // current conditions for filling
-    Eigen::VectorX<bool> ready_vec; // vector of readiness data
-    int double_counter;
+    InputPRLI curr_prli;            // current PRLI
+    InputNavi curr_navi;            // current navigation conditions
+    Eigen::VectorX<bool> ready_vec = Eigen::VectorX<bool>(AREA_AZIMUTH_PX); // vector of data readiness
+    int double_counter = 0;         // counter for overloaded lines in backscatter
 
-    int start_part, finish_part;
+    int start_part, finish_part;    // number of start and finish reading parts
 
 public:
     /**
@@ -54,10 +54,14 @@ public:
      */
     [[nodiscard]] bool listen_navi();
 
+    /**
+     * listening next parcel : navigation data + PRLI
+     * @return
+     */
     [[nodiscard]] InputStructure listen_message();
 
     /**
-     * destructor
+     * overloaded destructor
      */
     ~InputProcessor();
 };

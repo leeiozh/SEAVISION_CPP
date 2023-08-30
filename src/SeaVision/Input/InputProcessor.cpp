@@ -3,7 +3,6 @@
 //
 
 #include <iostream>
-#include <fstream>
 #include "InputProcessor.hpp"
 
 namespace SeaVision {
@@ -48,13 +47,11 @@ InputProcessor::InputProcessor(int prli_port, int navi_port, const ReadParameter
         throw SeaVisionException("Error binding socket for navigation. Input port >> " + std::to_string(navi_port));
     }
 
-    ready_vec.resize(params.size_angle); // resizing vector of readiness
     curr_prli.bcksctr.resize(params.line_size, params.size_angle);
     curr_prli.bcksctr.setZero();
 
     start_part = params.line_start / 1024;
     finish_part = params.line_end / 1024;
-    double_counter = 0;
 }
 
 bool InputProcessor::listen_navi() {
@@ -97,11 +94,16 @@ int InputProcessor::listen_prli() {
 
     double step = static_cast<double>((((unsigned short) pack[4]) << 8) | (unsigned short) pack[3]) / 1000.;
 
+    if (step != 1.875 and step != 3.75 and step != 7.5 and step != 15. and step != 30.)
+        throw SeaVisionException("Incorrect step!!! Input step >> " + std::to_string(step));
+
+    curr_prli.step = step;
+
     int num_part = static_cast<int>(pack[5]) - 1;
 
     int num_all = static_cast<int>(pack[6]);
 
-    int signal = static_cast<int>(pack[7]);
+    curr_prli.pulse = static_cast<int>(pack[7]);
 
     if (num_part >= start_part and num_part < finish_part) {
         for (int i = 0; i < 1024; ++i) {
@@ -130,34 +132,21 @@ InputStructure InputProcessor::listen_message() {
     auto end = std::chrono::steady_clock::now();
     double elapsed_seconds;     // timer for check how long this process go
 
-    while (prli_ready < (ready_vec.size())) { // loop while backscatter not fill completely and conditions read
-
-        /*if (counter % 128 == 0) std::cout << counter << std::endl;
-
-        if (counter % 4096 == 4094) {
-            std::cout << "update" << std::endl;
-            counter = 0;
-            std::ofstream out("C:/ocean/SEAVISION_CPP/back.csv");
-            for (int i = 0; i < curr_prli.bcksctr.rows(); ++i) {
-                for (int j = 0; j < curr_prli.bcksctr.cols(); ++j) {
-                    out << curr_prli.bcksctr(i, j) << ",";
-                }
-                out << std::endl;
-            }
-            out.close();
-        }*/
+    while (prli_ready < ready_vec.size()) { // loop while backscatter not fill completely and conditions read
 
         try {
 
             prli_ready = listen_prli();
-
-            //std::cout << "ready num " << prli_ready << std::endl;
+            if (prli_ready >= ready_vec.size())
+                std::cout << "PRLI received: " << ready_vec.cast<int>().sum() * 100. / ready_vec.size() << "%"
+                          << std::endl;
 
             if (!navi_ready) {
                 navi_ready = listen_navi();
-                if (navi_ready){
-                    std::cout << "navi ready " << curr_navi.lat << " " << curr_navi.lon << " " <<
-                     curr_navi.sog << " " << curr_navi.cog << " " << curr_navi.spd << " " << curr_navi.hdg << " " <<std::endl;
+                if (navi_ready) {
+                    std::cout << "Navigation received: lat = " << curr_navi.lat << ", lon = " << curr_navi.lon
+                              << ", sog = " << curr_navi.sog << ", cog = " << curr_navi.cog << ", speed = "
+                              << curr_navi.spd << ", gyro = " << curr_navi.hdg << " " << std::endl;
                 }
             }
 

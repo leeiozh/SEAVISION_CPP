@@ -31,6 +31,7 @@ private:
     Eigen::VectorXd speed = Eigen::VectorXd::Zero(MEAN);      // last MEAN values of speed from vessel navigation
     Eigen::VectorXi dir_vec = Eigen::VectorXi::Zero(CHANGE_DIR_NUM_SHOTS); // vector of CDNS last main directions
     int curr_dir = 0;                                   // index of current zone with the most contrast signal
+    double curr_step = STEP_DEF;
 
     std::unique_ptr<InputProcessor> inp_proc;           // pointer on input processor
     std::unique_ptr<OutputProcessor> output_proc;       // pointer on output processor
@@ -45,11 +46,11 @@ private:
 public:
     /**
      * constructor
-     * @param inp_proc pointer on input processor
-     * @param output_proc pointer of output processor
-     * @param disp_direct  pointer on area searcher
-     * @param mesh pointer on mesh
-     * @param curve_vec pointer on fourier stuff
+     * @param inp_proc      pointer on input processor
+     * @param output_proc   pointer of output processor
+     * @param disp_direct   pointer on area searcher
+     * @param mesh          pointer on mesh
+     * @param curve_vec     pointer on fourier stuff
      */
     MainProcess(std::unique_ptr<InputProcessor> inp_proc, std::unique_ptr<OutputProcessor> output_proc,
                 std::unique_ptr<DispersionDirect> disp_direct, std::unique_ptr<Mesh> mesh,
@@ -65,6 +66,12 @@ public:
      * main function to run a program
      */
     void run_realtime();
+
+    /**
+     * remeshing for current resolution
+     * @param step input step of backscatter
+     */
+    void remesh(double step);
 
     /**
      * getter of last results

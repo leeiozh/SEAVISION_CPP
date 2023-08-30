@@ -6,19 +6,41 @@
 
 namespace SeaVision {
 
+double AREA_SIZE, AREA_DISTANCE_METERS, K_MAX;
+
 MainProcess::MainProcess(std::unique_ptr<InputProcessor> inp_proc, std::unique_ptr<OutputProcessor> output_proc,
                          std::unique_ptr<DispersionDirect> disp_direct, std::unique_ptr<Mesh> mesh,
                          std::unique_ptr<DispersionCurve> curve, bool four_or_disp) :
         inp_proc(std::move(inp_proc)), output_proc(std::move(output_proc)), disp_direct(std::move(disp_direct)),
         mesh(std::move(mesh)), curve(std::move(curve)), four_or_disp(four_or_disp) {
 
-    mean_output.resize(MEAN);         // default constructor of OutputStructure is set zero
+    mean_output.resize(MEAN);                  // default constructor of OutputStructure is set zero
 
     area_vec.resize(NUM_AREA);
     for (int i = 0; i < NUM_AREA; ++i) {       // precompile matrix for convert from polar to cartesian
         double angle = -static_cast<double >(i) / static_cast<double>(NUM_AREA) * 360.;
         area_vec[i] = Area(AREA_SIZE, AREA_SIZE, -angle, angle, AREA_DISTANCE_METERS);
     }
+
+    AREA_SIZE = AREA_SIZE_DEF;
+    AREA_DISTANCE_METERS = AREA_DISTANCE_METERS_DEF;
+    K_MAX = K_MAX_DEF;
+}
+
+void MainProcess::remesh(const double step) {
+
+    AREA_SIZE = AREA_SIZE_DEF * (step / STEP_DEF);
+    AREA_DISTANCE_METERS = AREA_DISTANCE_METERS_DEF * (step / STEP_DEF);
+    K_MAX = 2. * M_PI / static_cast<double>(AREA_SIZE) * static_cast<double>(CUT_NUM);
+
+    for (int i = 0; i < NUM_AREA; ++i) {       // precompile matrix for convert from polar to cartesian
+        double angle = -static_cast<double >(i) / static_cast<double>(NUM_AREA) * 360.;
+
+        // TODO: see if this ok for longer steps
+        area_vec[i] = Area(AREA_SIZE, AREA_SIZE, -angle, angle, AREA_DISTANCE_METERS);
+    }
+
+    std::cout << "You changed STEP!!! Remeshed successfully!!!" << std::endl;
 }
 
 void MainProcess::run_realtime() {
@@ -64,6 +86,8 @@ void MainProcess::run_realtime() {
 
             try {
 
+                std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(TURN_PERIOD * 10)));
+
                 InputStructure local_copy;               // copy of the oldest element in queue
                 bool change = false;                     // flag if processor works speedier than sender
 
@@ -90,7 +114,7 @@ void MainProcess::run_realtime() {
                     output_proc->pass_message(res); // sending
 
                     std::cout << "pass result: dir " << res.dir[0] << ", swh " << res.swh[0] << ", vcos " << res.vcos[0]
-                              << std::endl;
+                              << ", per " << res.per[0] << ", len " << res.len[0] << std::endl << std::endl;
                 }
 
             } catch (const SeaVisionException &exception) {
@@ -118,11 +142,16 @@ void MainProcess::update(const InputStructure &input) {
         }
     }
 
+    if (curr_step != input.prli.step) {
+        curr_step = input.prli.step;
+        remesh(curr_step);
+    }
+
     speed[index % MEAN] = input.navi.spd;               // update current vessel speed
     hgd[index % MEAN] = input.navi.hdg;                 // update current vessel heading
 
     // find NUM_SYSTEMS indexes of zones with the most contrast signal
-    Eigen::VectorXi new_ang = disp_direct->calc_directions(input.prli.bcksctr, index);
+    Eigen::VectorXi new_ang = disp_direct->calc_directions(input.prli.bcksctr, index, curr_step);
 
     dir_vec[index % CHANGE_DIR_NUM_SHOTS] = new_ang[0]; // update main direction where after we do Fourier transform
 
@@ -132,7 +161,7 @@ void MainProcess::update(const InputStructure &input) {
         if (index % CHANGE_DIR_NUM_SHOTS == 0) curr_dir = get_median(dir_vec, true);
     }
 
-    auto inp_back = mesh->calc_back(area_vec[curr_dir], input.prli.bcksctr);
+    auto inp_back = mesh->calc_back(area_vec[curr_dir], input.prli.bcksctr, curr_step);
 
     curve->update(index, inp_back);
 
@@ -175,6 +204,7 @@ OutputStructure MainProcess::make_output() {
         } else {
             res.per[i] = spec.peak_period[i];
 
+            // TODO: here we can use different coefficients for steps
             if (four_or_disp) res.swh[i] = A_COEFF + B_COEFF * std::sqrt(spec.m0[i]);
             res.m0[i] = spec.m0[i];
 

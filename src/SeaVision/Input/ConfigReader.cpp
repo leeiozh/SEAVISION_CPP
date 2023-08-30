@@ -87,6 +87,11 @@ ConfigReader::ConfigReader(const std::string &path) : path(path) {
         if (data["FOUR_OR_DISP"] == "false") FOUR_OR_DISP = false;
         else FOUR_OR_DISP = true;
     }
+
+    get_ip();
+    get_navi_port();
+    get_prli_port();
+    get_serv_port();
 }
 
 std::string ConfigReader::get_ip() {

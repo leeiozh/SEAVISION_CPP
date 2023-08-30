@@ -35,9 +35,6 @@ double trapezoid(const Eigen::VectorXd &matrix, int start = 0, int end = -1);
 
 Eigen::VectorXd trapezoid(const Eigen::MatrixXd &matrix, int start = 0, int end = -1);
 
-Eigen::VectorXd operator*(const Eigen::VectorXd &vec1, const Eigen::VectorXd &vec2); // termwise multiplication
-
-
 } // namespace
 
 #endif //SEAVISION_MATH_HPP

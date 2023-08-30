@@ -11,6 +11,19 @@
 
 namespace SeaVision {
 
+struct VCO {
+    double k_num;
+    double omega;
+    double sigma;
+
+    [[nodiscard]] inline double calc_up() const {
+        return k_num * sigma * sigma * (omega - std::sqrt(G_COEFF * k_num));
+    }
+    [[nodiscard]] inline double calc_down() const {
+        return k_num * k_num * sigma * sigma;
+    }
+};
+
 struct WaveStruct {
     Eigen::Vector3d m0 = Eigen::Vector3d::Zero();
     Eigen::Vector3d vcosalpha = Eigen::Vector3d::Zero();
@@ -40,11 +53,10 @@ struct InputStructure {
 
 struct ReadParameters {
     int line_start = 0; // start of reading (px)
-    int line_end = 0; // end of reading (px), if "0" then read to end of file
-    int line_size = 4096; // (px)
-    int size_angle = 4096; // pixels
+    int line_end = AREA_READ_DIST_PX; // end of reading (px), if "0" then read to end of file
+    int line_size = AREA_READ_DIST_PX; // (px)
+    int size_angle = AREA_AZIMUTH_PX; // pixels
 };
-
 
 struct OutputStructure {
 

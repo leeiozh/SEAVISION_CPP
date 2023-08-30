@@ -2,22 +2,20 @@
 // Created by leeiozh on 16.04.23.
 //
 
-#include <iostream>
 #include "DispersionCurve.hpp"
 
 
 namespace SeaVision {
 
-DispersionCurve::DispersionCurve(int max_index, int width, int cut_index, double max_wave_num) :
-        max_index(max_index), width(width), cut_index(cut_index), max_wave_num(max_wave_num) {
-    data_fourier.resize(max_index);
+DispersionCurve::DispersionCurve() {
+    data_fourier.resize(FOUR_NUM);
 }
 
-void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
+void DispersionCurve::update(const int &index, const Eigen::MatrixXd &data) {
 
-    data_fourier[index % max_index] = calc_fourier_2d_one(data);
+    data_fourier[index % FOUR_NUM] = calc_fourier_2d_one(data);
 
-    if (index >= max_index) {
+    if (index >= FOUR_NUM) {
         auto welch = calc_welch(index);
         picture = calc_abs_wave_num(welch);
         picture /= picture.maxCoeff();
@@ -26,7 +24,7 @@ void DispersionCurve::update(const int index, const Eigen::MatrixXd &data) {
 }
 
 
-Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &data) const {
+Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &data) {
 
     if (data.rows() == 0 || data.cols() == 0) {
         std::stringstream buff;
@@ -35,7 +33,6 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     }
 
     fftw_complex *f_pic = (fftw_complex *) fftw_malloc(data.size() * sizeof(fftw_complex));
-
     fftw_complex *pic_fftw = (fftw_complex *) fftw_malloc(data.size() * sizeof(fftw_complex));
 
     fftw_plan plan = fftw_plan_dft_2d(static_cast<int>(data.rows()), static_cast<int>(data.cols()), pic_fftw, f_pic,
@@ -49,9 +46,9 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     }
     fftw_execute(plan);
 
-    Eigen::MatrixXcd res = Eigen::MatrixXd::Zero(cut_index, cut_index);
-    for (int i = 0; i < cut_index; ++i) {
-        for (int j = 0; j < cut_index; ++j) {
+    Eigen::MatrixXcd res = Eigen::MatrixXd::Zero(CUT_NUM, CUT_NUM);
+    for (int i = 0; i < CUT_NUM; ++i) {
+        for (int j = 0; j < CUT_NUM; ++j) {
             res(i, j) = std::complex<double>(f_pic[i * data.rows() + j][0], f_pic[i * data.rows() + j][1]);
         }
     }
@@ -63,44 +60,50 @@ Eigen::MatrixXcd DispersionCurve::calc_fourier_2d_one(const Eigen::MatrixXd &dat
     return res;
 }
 
-double DispersionCurve::calc_vcosalpha(const std::vector<double> &omega, const std::vector<double> &k_num,
-                                       const std::vector<double> &sigma) {
-    double up_sum = 0.;  // sum k_i / sigma^2_i * (omega_i - \sqrt{g * k_i})
-    double low_sum = 0.; // sum k_i / sigma^2_i
+double DispersionCurve::calc_vcos(const std::vector<VCO> &vco_vec, const int counter) {
 
-    for (int i = 0; i < omega.size(); ++i) {
+    double up = 0.;
+    double down = 0.;
+
+    for (int i = 0; i < counter; ++i) {
+        up += vco_vec[i].calc_up();
+        down += vco_vec[i].calc_down();
+    }
+
+    /*for (int i = 0; i < omega.size(); ++i) {
         up_sum += k_num[i] / sigma[i] / sigma[i] * (2 * M_PI * omega[i] - std::sqrt(G_COEFF * k_num[i]));
         low_sum += k_num[i] * k_num[i] / sigma[i] / sigma[i];
-    }
-    return up_sum / low_sum;
+    }*/
+
+    return up / down;
 }
 
 double DispersionCurve::dispersion_func(const double k_num, const double vcosalpha) {
     return (std::sqrt(G_COEFF * k_num) + k_num * vcosalpha) / M_PI / 2.; //
 }
 
-Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch(int index) const {
+Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch(const int &index) const {
 
-    Eigen::VectorX<Eigen::MatrixXd> res = Eigen::VectorX<Eigen::MatrixXd>(max_index);
+    Eigen::VectorX<Eigen::MatrixXd> res = Eigen::VectorX<Eigen::MatrixXd>(FOUR_NUM);
 
-    for (int t = 0; t < max_index; ++t) {
+    for (int t = 0; t < FOUR_NUM; ++t) {
         res[t] = Eigen::MatrixXd::Zero(data_fourier[0].rows(), data_fourier[0].cols());
     }
 
     for (int i = 0; i < data_fourier[0].rows(); ++i) {
         for (int j = 0; j < data_fourier[0].cols(); ++j) {
 
-            fftw_complex *out = (fftw_complex *) fftw_malloc(max_index * sizeof(fftw_complex));
+            fftw_complex *out = (fftw_complex *) fftw_malloc(FOUR_NUM * sizeof(fftw_complex));
 
-            fftw_complex *inp = (fftw_complex *) fftw_malloc(max_index * sizeof(fftw_complex));
+            fftw_complex *inp = (fftw_complex *) fftw_malloc(FOUR_NUM * sizeof(fftw_complex));
 
-            fftw_plan plan = fftw_plan_dft_1d(max_index, inp, out, FFTW_FORWARD, FFTW_ESTIMATE);
+            fftw_plan plan = fftw_plan_dft_1d(FOUR_NUM, inp, out, FFTW_FORWARD, FFTW_ESTIMATE);
 
             // detrending
-            Eigen::VectorXcd data_ij = Eigen::VectorXcd::Zero(max_index);
-            Eigen::VectorXcd x_ij = Eigen::VectorXcd::Zero(max_index);
-            for (int t = 0; t < max_index; ++t) {
-                int ind = (t + index % max_index) % max_index; // indexes shift for fourier array
+            Eigen::VectorXcd data_ij = Eigen::VectorXcd::Zero(FOUR_NUM);
+            Eigen::VectorXcd x_ij = Eigen::VectorXcd::Zero(FOUR_NUM);
+            for (int t = 0; t < FOUR_NUM; ++t) {
+                int ind = (t + index % FOUR_NUM) % FOUR_NUM; // indexes shift for fourier array
                 data_ij[t] = data_fourier[ind](i, j);
                 x_ij[t] = static_cast<std::complex<double>>(ind);
             }
@@ -115,15 +118,15 @@ Eigen::VectorX<Eigen::MatrixXd> DispersionCurve::calc_welch(int index) const {
             std::complex<double> b_coeff = (d_ij_sum - a_coeff * x_ij_sum) / size;
             data_ij -= (a_coeff * x_ij + b_coeff * Eigen::VectorXcd::Ones(data_ij.size()));
 
-            for (int t = 0; t < max_index; ++t) {
-                int ind = (t + index % FOUR_NUM + 1) % max_index; // indexes shift for fourier array
-                double hann = 0.5 * (1 - std::cos(2 * M_PI * t / static_cast<double>(max_index))); // or 1
+            for (int t = 0; t < FOUR_NUM; ++t) {
+                int ind = (t + index % FOUR_NUM + 1) % FOUR_NUM; // indexes shift for fourier array
+                double hann = 0.5 * (1 - std::cos(2 * M_PI * t / static_cast<double>(FOUR_NUM))); // or 1
                 inp[t][0] = hann * data_ij[ind].real();
                 inp[t][1] = hann * data_ij[ind].imag();
             }
             fftw_execute(plan);
 
-            for (int t = 0; t < max_index; ++t) {
+            for (int t = 0; t < FOUR_NUM; ++t) {
                 res[t](i, j) = out[t][0] * out[t][0] + out[t][1] * out[t][1]; // square norm
             }
             fftw_destroy_plan(plan);
@@ -180,13 +183,13 @@ void DispersionCurve::calc_curve() {
     }
 
     int spec_freq_argmax = argumax(spectrum_struct.freq_spec);
-    int spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_fir.first.row(spec_freq_argmax)));
-    double freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
+    /*int spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_fir.first.row(spec_freq_argmax)));
+    double freq_true = std::sqrt(G_COEFF * spec_k_argmax / CUT_NUM * K_MAX) / 2. / M_PI;
 
-    spectrum_struct.peak_period[0] = TURN_PERIOD / freq_true;
+    spectrum_struct.peak_period[0] = TURN_PERIOD / freq_true;*/
 
-    //spectrum_struct.peak_period[0] = TURN_PERIOD / (static_cast<double>(spec_freq_argmax) /
-    //                                                static_cast<double>(spectrum_struct.freq_spec.size()));
+    spectrum_struct.peak_period[0] = TURN_PERIOD / (static_cast<double>(spec_freq_argmax) /
+                                                    static_cast<double>(spectrum_struct.freq_spec.size()));
 
     spectrum_struct.m0[0] = trapezoid(ss_fir, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
@@ -194,7 +197,7 @@ void DispersionCurve::calc_curve() {
 
     Eigen::VectorXd ss_sec = trapezoid(signal_noise_sec.first, 0, -1); // convolution throw wave number for signal
     Eigen::VectorXd nn_sec = trapezoid(signal_noise_sec.second, 0, -1); // convolution throw wave number for noise
-    Eigen::VectorXd freq_spec_sec = Eigen::VectorXd::Zero(max_index);
+    Eigen::VectorXd freq_spec_sec = Eigen::VectorXd::Zero(FOUR_NUM);
 
     for (int i = 1; i < ss_sec.size(); ++i) { // calculating a spectrum
         if (i < 15) {
@@ -204,11 +207,11 @@ void DispersionCurve::calc_curve() {
     }
 
     spec_freq_argmax = argumax(freq_spec_sec);
-    spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_sec.first.row(spec_freq_argmax)));
-    freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
+    /*spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_sec.first.row(spec_freq_argmax)));
+    freq_true = std::sqrt(G_COEFF * spec_k_argmax / CUT_NUM * K_MAX) / 2. / M_PI;*/
 
-    spectrum_struct.peak_period[1] = TURN_PERIOD / freq_true;
-    //spectrum_struct.peak_period[1] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_sec)) / max_index);
+    //spectrum_struct.peak_period[1] = TURN_PERIOD / freq_true;
+    spectrum_struct.peak_period[1] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_sec)) / FOUR_NUM);
 
     spectrum_struct.m0[1] = trapezoid(ss_sec, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
@@ -216,7 +219,7 @@ void DispersionCurve::calc_curve() {
 
     Eigen::VectorXd ss_th = trapezoid(signal_noise_th.first, 0, -1); // convolution throw wave number for signal
     Eigen::VectorXd nn_th = trapezoid(signal_noise_th.second, 0, -1); // convolution throw wave number for noise
-    Eigen::VectorXd freq_spec_th = Eigen::VectorXd::Zero(max_index);
+    Eigen::VectorXd freq_spec_th = Eigen::VectorXd::Zero(FOUR_NUM);
 
     for (int i = 1; i < ss_th.size(); ++i) { // calculating a spectrum
         if (i < 15) {
@@ -225,17 +228,25 @@ void DispersionCurve::calc_curve() {
         freq_spec_th[i] = ss_th[i] / nn_fir[i];
     }
     spec_freq_argmax = argumax(freq_spec_th);
-    spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_th.first.row(spec_freq_argmax)));
-    freq_true = std::sqrt(G_COEFF * spec_k_argmax / cut_index * max_wave_num) / 2. / M_PI;
+    /*spec_k_argmax = argumax(Eigen::VectorXd(signal_noise_th.first.row(spec_freq_argmax)));
+    freq_true = std::sqrt(G_COEFF * spec_k_argmax /  CUT_NUM * K_MAX) / 2. / M_PI;
 
-    spectrum_struct.peak_period[2] = TURN_PERIOD / freq_true;
-    // spectrum_struct.peak_period[2] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_th)) / max_index);
+    spectrum_struct.peak_period[2] = TURN_PERIOD / freq_true;*/
+    spectrum_struct.peak_period[2] = TURN_PERIOD / (static_cast<double>(argumax(freq_spec_th)) / FOUR_NUM);
     spectrum_struct.m0[2] = trapezoid(ss_th, 10, -1) / trapezoid(nn_fir, 10, -1); // calculating zeroth momentum
 
 }
 
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
-DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
+DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, const int &times) {
+
+    /*std::ofstream out("C:/ocean/SEAVISION_CPP/curve" + std::to_string(times) + ".csv");
+    for (int i = 0; i < pic.rows(); ++i) {
+        for (int j = 0; j < pic.cols(); ++j) {
+            out << pic(i, j) << ",";
+        }
+        out << std::endl;
+    }*/
 
     // marking points of columns maximum
     Eigen::VectorXi max_freq = argumax(pic, 0); // vec of argumax by freq for each wave number
@@ -260,44 +271,42 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
     for (int i = 0; i < mask.size(); ++i) {
         if (std::abs(grad[i]) < 3 * grad_med) mask[i] = true;
         if (max_freq[i] <= static_cast<double >(pic.rows()) / 10.) mask[i] = false;
-        if (max_freq[i] >= 9. * static_cast<double >(pic.rows()) / 10) mask[i] = false;
+        if (max_freq[i] >= 9. * static_cast<double >(pic.rows()) / 10.) mask[i] = false;
     }
-    max_freq[0] = 0; // forced zero crossing
-    mask[0] = true; // forced zero crossing
 
-    //std::cout << "mask " << mask.transpose() << std::endl;
+    max_freq[0] = 0;    // forced zero crossing
+    mask[0] = true;     // forced zero crossing
 
-    std::vector<double> max_freq_masked; // y of fitting points
-    std::vector<double> k_num_vec; // x of fitting points
-    std::vector<double> sigma_vec; // inverse weights of fitting points
+    std::vector<VCO> vco_vec(CUT_NUM);   // structure of fitting points
+    int counter = 0;
 
     for (int i = 0; i < mask.size(); ++i) { // filling arrays for fitting
         if (mask[i]) {
-            max_freq_masked.push_back(max_freq[i] / static_cast<double>(pic.rows()) / TURN_PERIOD);
-            k_num_vec.push_back(static_cast<double>(i) / static_cast<double>(mask.size()) * max_wave_num);
-            sigma_vec.push_back(1. / pic.col(i).maxCoeff());
+            vco_vec[counter].omega = max_freq[i] / static_cast<double>(pic.rows()) / TURN_PERIOD;
+            vco_vec[counter].k_num = static_cast<double>(i) / static_cast<double>(mask.size()) * K_MAX;
+            vco_vec[counter].sigma = pic.col(i).maxCoeff();
+            counter++;
         }
     }
 
     double vcosalpha = 0.; // if everything is bad, we suppose that we measure in drift
 
-    if (static_cast<double>(max_freq_masked.size()) > static_cast<double>(pic.cols()) * 0.2) {
-        vcosalpha = calc_vcosalpha(max_freq_masked, k_num_vec, sigma_vec); // fitted coefficient
+    if (counter > static_cast<double>(pic.cols()) * 0.2) {
+        vcosalpha = calc_vcos(vco_vec, counter); // fitted coefficient
     }
 
     spectrum_struct.vcosalpha[times] = vcosalpha;
 
-    //std::cout << "vcos " << vcosalpha << std::endl;
     Eigen::MatrixXd noise = Eigen::MatrixXd(pic); // there we cut area around dispersion curve
 
     for (int k = 0; k < pic.cols(); ++k) { // loop for columns
 
         // calculating frequency of current wave number
-        double freq = dispersion_func(static_cast<double>(k) / cut_index * max_wave_num, vcosalpha);
-        freq *= (max_index * TURN_PERIOD);
+        double freq = dispersion_func(static_cast<double>(k) / CUT_NUM * K_MAX, vcosalpha);
+        freq *= (FOUR_NUM * TURN_PERIOD);
 
-        int left = std::max(static_cast<int>(std::round(freq - width)), 0); // left side of curve
-        int right = std::min(static_cast<int>(std::round(freq + width)), max_index); // right side of curve
+        int left = std::max(static_cast<int>(std::round(freq - DELTA_FREQ)), 0); // left side of curve
+        int right = std::min(static_cast<int>(std::round(freq + DELTA_FREQ)), FOUR_NUM); // right side of curve
         if (right > left) noise.col(k).segment(left, right - left).setZero(); // zeroing signal
     }
 
@@ -306,15 +315,15 @@ DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, int times) {
     for (int k = 0; k < pic.cols(); ++k) { // loop for columns
 
         // calculating frequency of current wave number
-        double freq = dispersion_func(static_cast<double>(k) / cut_index * max_wave_num, vcosalpha);
-        freq *= (max_index * TURN_PERIOD);
+        double freq = dispersion_func(static_cast<double>(k) / CUT_NUM * K_MAX, vcosalpha);
+        freq *= (FOUR_NUM * TURN_PERIOD);
 
         // analogically for mirroring part
         freq *= -1;
-        freq += max_index - 1;
+        freq += FOUR_NUM - 1;
 
-        int left = std::max(static_cast<int>(std::round(freq - width + 1)), 0);
-        int right = std::min(static_cast<int>(std::round(freq + width + 1)), max_index);
+        int left = std::max(static_cast<int>(std::round(freq - DELTA_FREQ + 1)), 0);
+        int right = std::min(static_cast<int>(std::round(freq + DELTA_FREQ + 1)), FOUR_NUM);
         if (right > left) {
             noise.col(k).segment(left, right - left).setZero();
         }

@@ -6,10 +6,10 @@
 #define SEAVISION_CONFIGREADER_HPP
 
 #include <string>
-#include <map>
 #include <fstream>
-#include <algorithm>
 #include <iostream>
+#include <map>
+#include <algorithm>
 #include "SeaVision/SeaVisionBaseException.hpp"
 
 namespace SeaVision {

@@ -18,10 +18,7 @@ class OutputProcessor {
 
 protected:
     WSADATA wsaData{};
-    SOCKET descriptor;
-    sockaddr_in address{};
-    std::string ip;
-    int port;
+    SocketParams socket_params{};  // internal socket stuff
 
 public:
 

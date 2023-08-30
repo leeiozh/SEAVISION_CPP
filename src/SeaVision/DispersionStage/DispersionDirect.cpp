@@ -2,7 +2,6 @@
 // Created by leeiozh on 6/21/23.
 //
 
-#include <iostream>
 #include "DispersionDirect.hpp"
 
 namespace SeaVision {
@@ -74,7 +73,7 @@ void DispersionDirect::smooth_change(const Eigen::VectorXi &new_vec) {
     }
 }
 
-Eigen::VectorXi DispersionDirect::calc_directions(const Eigen::MatrixXi &data, int index) {
+Eigen::VectorXi DispersionDirect::calc_directions(const Eigen::MatrixXi &data, const int index, const double step) {
 
     int height = std::ceil(static_cast<double>(data.cols()) / NUM_AREA); // height of rectangle for summing
     Eigen::VectorXd disp = Eigen::VectorXd::Zero(NUM_AREA); // vector of dispersion in each rectangle
@@ -107,12 +106,12 @@ Eigen::VectorXi DispersionDirect::calc_directions(const Eigen::MatrixXi &data, i
 
     rose = disp;
 
-    calc_length(data);
+    calc_length(data, step);
 
     return curr_std;
 }
 
-Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
+Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data, const double step) {
 
     int height = std::ceil(static_cast<double>(data.cols()) / NUM_AREA);
 
@@ -157,7 +156,7 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
         fftw_free(inp);
         fftw_free(out);
 
-        curr_len[n] = STEP * static_cast<double>(spec.size()) / static_cast<double>(argumax(spec));
+        curr_len[n] = step * static_cast<double>(spec.size()) / static_cast<double>(argumax(spec));
     }
 
     return curr_len;
@@ -166,7 +165,7 @@ Eigen::VectorXd DispersionDirect::calc_length(const Eigen::MatrixXi &data) {
 Eigen::VectorXd DispersionDirect::get_rose() const {
     Eigen::VectorXd rose_height = Eigen::VectorXd::Zero(rose.size());
     for (int i = 0; i < rose.size(); ++i) {
-        rose_height[i] = C_COEFF + D_COEFF * rose[i] * rose[i];
+        rose_height[i] = C_COEFF + D_COEFF * rose[i];
     }
     return rose_height;
 }

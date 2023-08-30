@@ -11,45 +11,30 @@ namespace SeaVision {
 
 class Area {
 public:
-    int size_x; // meters
-    int size_y; // meters
-    double angle; // radians
-    double azimuth; // radians
+    double size_x;   // meters
+    double size_y;   // meters
+    double angle;    // radians
+    double azimuth;  // radians
     double distance; // meters
 public:
     Area() = default;
 
     /**
      * class for cut square
-     * @param size_x horizontal size
-     * @param size_y vertical size
-     * @param angle orientation angle between vertical and axes of square
-     * @param azimuth angle between north and direction on center of square
-     * @param distance distance between radar and center of square
+     * @param size_x horizontal size (meters)
+     * @param size_y vertical size   (meters)
+     * @param angle orientation angle between vertical and axes of square (degrees)
+     * @param azimuth angle between north and direction on center of square (degrees)
+     * @param distance distance between radar and center of square (meters)
      */
 
-    inline Area(const int &size_x, const int &size_y, const double &angle, const double &azimuth,
-                const double &distance) :
-            size_x(size_x), size_y(size_y), angle(angle / 180 * M_PI), azimuth(azimuth / 180 * M_PI),
-            distance(distance) {};
+    Area(const double &size_x, const double &size_y, const double &angle, const double &azim, const double &dist);
 
-    /**
-     * getter coordinates of area's center
-     * @return coordinates of area's center
-     */
-    [[nodiscard]] Eigen::Vector2d getCenterCoords() const;
+    [[nodiscard]] Eigen::Vector2d get_center_coords() const;
 
-    /**
-     * getter parameters of area's diagonal
-     * @return parameters of area's diagonal
-     */
-    [[nodiscard]] Eigen::Vector2d getDiagParams() const;
+    [[nodiscard]] Eigen::Vector2d get_diag_params() const;
 
-    /**
-     * getter coordinates of area's vertex
-     * @return coordinates of area's vertex
-     */
-    [[nodiscard]] Eigen::Matrix<double, 4, 2> getCoordVertex() const;
+    [[nodiscard]] Eigen::Matrix<double, 4, 2> get_vertex_coords() const;
 };
 
 }

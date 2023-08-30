@@ -6,26 +6,26 @@
 
 namespace SeaVision {
 
-OutputProcessor::OutputProcessor(const std::string &ip, const int port) : ip(ip), port(port) {
+OutputProcessor::OutputProcessor(const std::string &ip, const int port) {
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         throw SeaVisionException("Failed to initialize Winsock!");
     }
 
-    descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (descriptor == INVALID_SOCKET) {
+    socket_params.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socket_params.socket_descriptor == INVALID_SOCKET) {
         WSACleanup();
         throw SeaVisionException("Failed to create socket!");
     }
 
-    address.sin_family = AF_INET;
-    address.sin_port = htons(port);
-    address.sin_addr.s_addr = inet_addr(ip.c_str());
+    socket_params.server_address.sin_family = AF_INET;
+    socket_params.server_address.sin_port = htons(port);
+    socket_params.server_address.sin_addr.s_addr = inet_addr(ip.c_str());
 }
 
 void OutputProcessor::pass_message(const OutputStructure &output) {
 
-    unsigned char data[1 + 8 * NUM_SYSTEMS + NUM_AREA * 2];
+    unsigned char data[25 + NUM_AREA * 2];
     data[0] = 0x5;
 
     for (int i = 0; i < NUM_SYSTEMS; ++i) {
@@ -47,14 +47,14 @@ void OutputProcessor::pass_message(const OutputStructure &output) {
         data[25 + i * 2 + 1] = static_cast<unsigned char>((static_cast<uint16_t>(output.rose[i] * 100) >> 8) & 0xFF);
     }
 
-    ssize_t bytesSent = sendto(descriptor, reinterpret_cast<const char *>(&data), sizeof(data), 0,
-                               (struct sockaddr *) &address, sizeof(address));
+    ssize_t bytesSent = sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(&data), sizeof(data), 0,
+                               (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
     if (bytesSent == -1) throw SeaVisionException("Error when sending a result!");
 
 }
 
 OutputProcessor::~OutputProcessor() {
-    close(descriptor);
+    close(socket_params.socket_descriptor);
     WSACleanup();
 }
 
