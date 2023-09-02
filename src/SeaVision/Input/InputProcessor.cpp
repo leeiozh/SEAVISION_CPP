@@ -15,46 +15,70 @@ InputProcessor::InputProcessor(int prli_port, int navi_port, const ReadParameter
 #endif
 
     params_prli.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (params_prli.socket_descriptor == INVALID_SOCKET) { //  or params_prli.socket_descriptor == -1
+
 #ifdef WIN32
+    if (params_prli.socket_descriptor == INVALID_SOCKET) {
         WSACleanup();
-#endif
         throw SeaVisionException("Failed to create socket.");
     }
+#else
+    if (params_prli.socket_descriptor == -1) {
+        throw SeaVisionException("Failed to create socket.");
+    }
+#endif
 
     params_prli.server_address.sin_family = AF_INET;
     params_prli.server_address.sin_port = htons(prli_port);
     params_prli.server_address.sin_addr.s_addr = INADDR_ANY;
 
+#ifdef WIN32
     if (bind(params_prli.socket_descriptor, (struct sockaddr *) &params_prli.server_address,
              sizeof(params_prli.server_address)) == SOCKET_ERROR) {
         closesocket(params_prli.socket_descriptor);
-#ifdef WIN32
         WSACleanup();
-#endif
         throw SeaVisionException("Error binding socket for PRLI. Input port >> " + std::to_string(prli_port));
     }
+#else
+    if (bind(params_prli.socket_descriptor, (struct sockaddr *) &params_prli.server_address,
+             sizeof(params_prli.server_address)) == -1) {
+        close(params_prli.socket_descriptor);
+        throw SeaVisionException("Error binding socket for PRLI. Input port >> " + std::to_string(prli_port));
+    }
+#endif
 
     params_navi.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (params_navi.socket_descriptor == INVALID_SOCKET or params_navi.socket_descriptor == -1) {
+
 #ifdef WIN32
+    if (params_navi.socket_descriptor == INVALID_SOCKET) {
         WSACleanup();
-#endif
         throw SeaVisionException("Failed to create socket.");
     }
+#else
+    if (params_navi.socket_descriptor == -1) {
+        throw SeaVisionException("Failed to create socket.");
+    }
+#endif
 
     params_navi.server_address.sin_family = AF_INET;
     params_navi.server_address.sin_port = htons(navi_port);
     params_navi.server_address.sin_addr.s_addr = INADDR_ANY;
 
-    if (bind(params_navi.socket_descriptor, (struct sockaddr *) &params_navi.server_address,
-             sizeof(params_navi.server_address)) == SOCKET_ERROR) {
-        closesocket(params_navi.socket_descriptor);
 #ifdef WIN32
+    if ( bind(params_navi.socket_descriptor, (struct sockaddr *) &params_navi.server_address,
+                 sizeof(params_navi.server_address)) == SOCKET_ERROR) {
+        closesocket(params_navi.socket_descriptor);
         WSACleanup();
-#endif
-        throw SeaVisionException("Error binding socket for navigation. Input port >> " + std::to_string(navi_port));
+        throw SeaVisionException("Error binding socket for navigation. Input port >> " +  std::to_string(navi_port)
+        );
     }
+#else
+    if (bind(params_navi.socket_descriptor, (struct sockaddr *) &params_navi.server_address,
+             sizeof(params_navi.server_address)) == -1) {
+        close(params_navi.socket_descriptor);
+        throw SeaVisionException("Error binding socket for navigation. Input port >> " + std::to_string(navi_port)
+        );
+    }
+#endif
 
     curr_prli.bcksctr.resize(params.line_size, params.size_angle);
     curr_prli.bcksctr.setZero();
@@ -181,10 +205,13 @@ InputStructure InputProcessor::listen_message() {
 }
 
 InputProcessor::~InputProcessor() {
+#ifdef WIN64
+    closesocket(params_prli.socket_descriptor);
+    closesocket(params_navi.socket_descriptor);
+    WSACleanup();
+#else
     close(params_prli.socket_descriptor);
     close(params_navi.socket_descriptor);
-#ifdef WIN64
-    WSACleanup();
 #endif
 }
 

@@ -11,37 +11,40 @@ Sender::Sender(const std::string &ip, int port, std::unique_ptr<FileReader> file
         file_reader(std::move(file_reader)) {
 
 #ifdef WIN32
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        throw SeaVisionException("Failed to initialize Winsock!");
-    }
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+        throw SeaVisionException("Failed to initialize Winsock.");
 #endif
 
-    socket_params.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socket_params.socket_descriptor == INVALID_SOCKET or socket_params.socket_descriptor == -1) {
+    params.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
 
 #ifdef WIN32
+    if (params_prli.socket_descriptor == INVALID_SOCKET) {
         WSACleanup();
-#endif
-        throw SeaVisionException("Failed to create socket!");
+        throw SeaVisionException("Failed to create socket.");
     }
+#else
+    if (params.socket_descriptor == -1) {
+        throw SeaVisionException("Failed to create socket.");
+    }
+#endif
 
-    socket_params.server_address.sin_family = AF_INET;
-    socket_params.server_address.sin_port = htons(port);
-    socket_params.server_address.sin_addr.s_addr = inet_addr(ip.c_str());
+    params.server_address.sin_family = AF_INET;
+    params.server_address.sin_port = htons(port);
+    params.server_address.sin_addr.s_addr = inet_addr(ip.c_str());
 }
 
 void Sender::pass_cond(const SeaVision::InputNavi &cond) {
 
     unsigned char first_byte = 0x1;
-    sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
-           (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+    sendto(params.socket_descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
+           (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
     int32_t lat_lon[2];
     lat_lon[0] = static_cast<int32_t>(1000000 * cond.lat);
     lat_lon[1] = static_cast<int32_t>(1000000 * cond.lon);
 
-    sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(lat_lon), sizeof(lat_lon), 0,
-           (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+    sendto(params.socket_descriptor, reinterpret_cast<const char *>(lat_lon), sizeof(lat_lon), 0,
+           (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
     std::cout << "send lat+lon " << cond.lat << " " << cond.lon << std::endl;
 
@@ -51,8 +54,8 @@ void Sender::pass_cond(const SeaVision::InputNavi &cond) {
     cshs[2] = static_cast<uint16_t>(cond.hdg * 100.);
     cshs[3] = static_cast<uint16_t>(cond.spd * 100.);
 
-    sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(cshs), sizeof(cshs), 0,
-           (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+    sendto(params.socket_descriptor, reinterpret_cast<const char *>(cshs), sizeof(cshs), 0,
+           (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
     std::cout << "send cdhs " << cond.cog << " " << cond.sog << " " << cond.hdg << " " << cond.spd << std::endl;
 }
@@ -73,20 +76,20 @@ void Sender::pass_prli(const SeaVision::InputPRLI &prli) {
             part_all[1] = static_cast<unsigned char>(4);
             part_all[2] = static_cast<unsigned char>(0);
 
-            sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
-                   (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+            sendto(params.socket_descriptor, reinterpret_cast<const char *>(&first_byte), sizeof(first_byte), 0,
+                   (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
             //std::cout << "prli byte send" << std::endl;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(num_step), sizeof(num_step), 0,
-                   (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+            sendto(params.socket_descriptor, reinterpret_cast<const char *>(num_step), sizeof(num_step), 0,
+                   (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
             //std::cout << "prli num_step send " << i << std::endl;
             //std::this_thread::sleep_for(std::chrono::seconds(1));
 
-            sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(part_all), sizeof(part_all), 0,
-                   (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+            sendto(params.socket_descriptor, reinterpret_cast<const char *>(part_all), sizeof(part_all), 0,
+                   (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
             //std::cout << "prli part_all send " << j << std::endl;
             //std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -95,8 +98,8 @@ void Sender::pass_prli(const SeaVision::InputPRLI &prli) {
             for (int k = 0; k < 1024; ++k) {
                 line[k] = static_cast<unsigned char>(prli.bcksctr(j * 1024 + k, i));
             }
-            sendto(socket_params.socket_descriptor, reinterpret_cast<const char *>(line), sizeof(line), 0,
-                   (struct sockaddr *) &socket_params.server_address, sizeof(socket_params.server_address));
+            sendto(params.socket_descriptor, reinterpret_cast<const char *>(line), sizeof(line), 0,
+                   (struct sockaddr *) &params.server_address, sizeof(params.server_address));
 
             //std::cout << "prli " << i << " " << j << " line send" << std::endl;
             std::this_thread::sleep_for(std::chrono::microseconds(150));
@@ -141,9 +144,11 @@ void Sender::pass_queue_files(const std::string &path, int num) {
 }
 
 Sender::~Sender() {
-    close(socket_params.socket_descriptor);
 #ifdef WIN32
+    closesocket(params.socket_descriptor);
     WSACleanup();
+#else
+    close(params.socket_descriptor);
 #endif
 }
 

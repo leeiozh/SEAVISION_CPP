@@ -7,7 +7,7 @@
 
 #ifdef WIN64
 #include <winsock2.h>
-#elif UNIX
+#elif __linux__
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #endif
@@ -26,7 +26,7 @@ protected:
 #ifdef WIN64
     WSADATA wsaData{};
 #endif
-    SocketParams socket_params{};  // internal socket stuff
+    SocketParams params{};  // internal socket stuff
 
 public:
 

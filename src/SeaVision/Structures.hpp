@@ -5,8 +5,14 @@
 #ifndef SEAVISION_STRUCTURES_HPP
 #define SEAVISION_STRUCTURES_HPP
 
-#include <Eigen/Dense>
+#ifdef WIN32
 #include <winsock2.h>
+#elif __linux__
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
+
+#include <Eigen/Dense>
 #include "SeaVision/Consts.hpp"
 
 namespace SeaVision {
@@ -74,7 +80,7 @@ struct OutputStructure {
 };
 
 struct SocketParams {
-    SOCKET socket_descriptor;
+    int socket_descriptor;
     sockaddr_in server_address;
 };
 

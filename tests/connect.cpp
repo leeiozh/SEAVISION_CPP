@@ -9,8 +9,13 @@ using namespace SeaVision;
 
 int main() {
 
-    char result[MAX_PATH];
-    std::string curr_path = std::string(result, GetModuleFileName(nullptr, result, MAX_PATH));
+#ifdef WIN64
+    char buff[MAX_PATH];
+    std::string curr_path = std::string(buff, GetModuleFileName(nullptr, buff, MAX_PATH));
+#else
+    char buff[FILENAME_MAX];
+    std::string curr_path = std::string(buff, getcwd(buff, FILENAME_MAX));;
+#endif
 
     try {
 

@@ -7,7 +7,7 @@
 
 #ifdef WIN32
 #include <winsock2.h>
-#elif UNIX
+#elif __linux__
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #endif
