@@ -5,10 +5,10 @@
 #ifndef SEAVISION_MESH_HPP
 #define SEAVISION_MESH_HPP
 
+#include <Eigen/Dense>
 #include "Cell.hpp"
 #include "Area.hpp"
-#include "SeaVision/Input/InputStructure.hpp"
-#include <eigen3/Eigen/Dense>
+#include "SeaVision/Structures.hpp"
 
 namespace SeaVision {
 
@@ -19,24 +19,23 @@ class Mesh {
 protected:
     Eigen::MatrixX<Cell> mesh; // matrix of mesh
     ReadParameters params; // parameters of reading (number of lines)
-    double dist_step = STEP; // meters
 
 
 public:
     /**
      * constructor of mesh
      * @param params parameters of reading
-     * @param dist_step size in pixels of input matrix on y axis
      */
-    explicit Mesh(ReadParameters params, double dist_step = STEP);
+    explicit Mesh(const ReadParameters &params);
 
     /**
      * calculating backscatter in cartesian
      * @param area class with parameters of cut zone
      * @param back input backscatter in polar
+     * @param dist_step input backscatter step
      * @return backscatter in cartesian
      */
-    [[nodiscard]] Eigen::MatrixXd calc_back(const Area &area, const Eigen::MatrixXi &back) const;
+    [[nodiscard]] Eigen::MatrixXd calc_back(const Area &area, const Eigen::MatrixXi &back, double dist_step) const;
 
 };
 

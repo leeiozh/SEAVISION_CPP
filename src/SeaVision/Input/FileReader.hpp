@@ -6,14 +6,20 @@
 #define SEAVISION_FILEREADER_HPP
 
 #include <string>
-#include "InputStructure.hpp"
+#include <filesystem>
+#include <fstream>
+#include <utility>
+#include <iostream>
+#include "SeaVision/Consts.hpp"
+#include "SeaVision/SeaVisionBaseException.hpp"
+#include "SeaVision/Structures.hpp"
 
 namespace SeaVision {
 
 class FileReader {
 
-    std::string path;
-    ReadParameters params;
+    std::string path; // path to folder with files
+    ReadParameters params; // parameters of reading
 
 public:
 
@@ -33,12 +39,14 @@ public:
 
     [[nodiscard]] InputStructure read_next_file(int index) const;
 
+    [[nodiscard]] InputStructure read_next_file(const std::string &name, int index) const;
+
     /**
      * read num files from folder
      * @param num number of reading files (from zero in alphabetical order)
      * @return vector of structures with read parameters
      */
-    [[nodiscard]] std::vector<InputStructure> read_queue_files(int num = INT_MAX) const;
+    [[nodiscard]] std::vector <InputStructure> read_queue_files(int num = INT_MAX) const;
 
 };
 

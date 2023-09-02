@@ -6,18 +6,18 @@
 
 namespace SeaVision {
 
-Mesh::Mesh(const ReadParameters params, const double dist_step)
-        : params(params), dist_step(dist_step) {
+Mesh::Mesh(const ReadParameters &params) : params(params) {
 
     int size_mesh = static_cast<int>(2 * params.line_end); // pixels
     mesh.resize(size_mesh, size_mesh);
+
     for (int i = 0; i < size_mesh; ++i) { // pixels
-        double ii = (static_cast<double>(i) / size_mesh - 0.5) * 2 * params.line_end; // in pixels
+        double ii = (static_cast<double>(i) / size_mesh - 0.5) * 2 * params.line_end;     // in pixels
         for (int j = 0; j < size_mesh; ++j) {
             double jj = (static_cast<double>(j) / size_mesh - 0.5) * 2 * params.line_end; // in pixels
             double rho = std::sqrt(ii * ii + jj * jj); // meters
             int rho_div = std::floor(rho);
-            double theta = (-std::atan2(ii, jj) / 2. / M_PI + 0.25) * params.size_angle; // in pixels
+            double theta = (-std::atan2(ii, jj) / 2. / M_PI + 0.25) * params.size_angle;  // in pixels
             if (theta < 0) {
                 theta += params.size_angle;
             }
@@ -29,9 +29,10 @@ Mesh::Mesh(const ReadParameters params, const double dist_step)
     }
 }
 
-Eigen::MatrixXd Mesh::calc_back(const SeaVision::Area &area, const Eigen::MatrixXi &back) const {
+Eigen::MatrixXd
+Mesh::calc_back(const SeaVision::Area &area, const Eigen::MatrixXi &back, const double dist_step) const {
 
-    Eigen::Matrix<double, 4, 2> vertexes = area.getCoordVertex() / dist_step; // pixels
+    Eigen::Matrix<double, 4, 2> vertexes = area.get_vertex_coords() / dist_step; // pixels
 
     int res_size_x = static_cast<int>(area.size_x / dist_step);
     int res_size_y = static_cast<int>(area.size_y / dist_step);
@@ -49,7 +50,7 @@ Eigen::MatrixXd Mesh::calc_back(const SeaVision::Area &area, const Eigen::Matrix
             double y = jj + x_norm * (vertexes(3, 1) + y_norm * (vertexes(0, 1) - vertexes(3, 1)) - jj);
             int y_div = params.line_end + static_cast<int>(y);
 
-            // просто интерполяция, использовать для ускорения запуска программы
+            // closest interolation, use only for boost
             // res(i, j) = back(mesh(x_div, y_div).indexes[0], mesh(x_div, y_div).indexes[1]);
 
             res(i, j) = (1 - mesh(x_div, y_div).weights[0]) *

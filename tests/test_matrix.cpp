@@ -2,7 +2,6 @@
 // Created by leeiozh on 01.09.22.
 //
 
-#include <fstream>
 #include "SeaVision/Interpolant/Mesh.hpp"
 #include "gtest/gtest.h"
 
@@ -34,14 +33,5 @@ TEST(TEST_AREA, AREA_SIMPLE) {
     ASSERT_FALSE(std::abs(res(10, 10) - 0.0) > TOLERANCE);
     ASSERT_FALSE(std::abs(res(100, 0) - 2.0) > TOLERANCE);
     ASSERT_FALSE(std::abs(res(24, 0) + res(25, 0) - 1.) > 1e-2);
-
-    /*
-    std::ofstream out("/home/leeiozh/ocean/seavisionCPP/test_matrix.csv");
-    for (int i = 0; i < res.rows(); ++i) {
-        for (int j = 0; j < res.cols(); ++j) {
-            out << res(i, j) << ",";
-        }
-        out << std::endl;
-    }*/
 }
 }
