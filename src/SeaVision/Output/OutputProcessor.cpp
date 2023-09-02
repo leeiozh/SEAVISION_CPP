@@ -8,13 +8,18 @@ namespace SeaVision {
 
 OutputProcessor::OutputProcessor(const std::string &ip, const int port) {
 
+#ifdef WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         throw SeaVisionException("Failed to initialize Winsock!");
     }
+#endif
 
     socket_params.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socket_params.socket_descriptor == INVALID_SOCKET) {
+    if (socket_params.socket_descriptor == INVALID_SOCKET or socket_params.socket_descriptor == -1) {
+
+#ifdef WIN32
         WSACleanup();
+#endif
         throw SeaVisionException("Failed to create socket!");
     }
 
@@ -55,7 +60,9 @@ void OutputProcessor::pass_message(const OutputStructure &output) {
 
 OutputProcessor::~OutputProcessor() {
     close(socket_params.socket_descriptor);
+#ifdef WIN32
     WSACleanup();
+#endif
 }
 
 } // namespace

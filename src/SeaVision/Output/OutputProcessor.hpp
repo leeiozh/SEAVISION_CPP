@@ -5,7 +5,13 @@
 #ifndef SEAVISION_OUTPUTPROCESSOR_HPP
 #define SEAVISION_OUTPUTPROCESSOR_HPP
 
+#ifdef WIN64
 #include <winsock2.h>
+#elif UNIX
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
+
 #include <string>
 #include <utility>
 #include <unistd.h>
@@ -17,7 +23,9 @@ namespace SeaVision {
 class OutputProcessor {
 
 protected:
+#ifdef WIN64
     WSADATA wsaData{};
+#endif
     SocketParams socket_params{};  // internal socket stuff
 
 public:

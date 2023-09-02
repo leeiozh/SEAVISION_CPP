@@ -3,7 +3,7 @@
 //
 
 #include "DispersionCurve.hpp"
-
+#include <fstream>
 
 namespace SeaVision {
 
@@ -240,13 +240,13 @@ void DispersionCurve::calc_curve() {
 std::pair<Eigen::MatrixXd, Eigen::MatrixXd>
 DispersionCurve::proc_one_curve(const Eigen::MatrixXd &pic, const int &times) {
 
-    /*std::ofstream out("C:/ocean/SEAVISION_CPP/curve" + std::to_string(times) + ".csv");
+    std::ofstream out("C:/ocean/SEAVISION_CPP/curve" + std::to_string(times) + ".csv");
     for (int i = 0; i < pic.rows(); ++i) {
         for (int j = 0; j < pic.cols(); ++j) {
             out << pic(i, j) << ",";
         }
         out << std::endl;
-    }*/
+    }
 
     // marking points of columns maximum
     Eigen::VectorXi max_freq = argumax(pic, 0); // vec of argumax by freq for each wave number

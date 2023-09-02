@@ -9,13 +9,16 @@ namespace SeaVision {
 
 InputProcessor::InputProcessor(int prli_port, int navi_port, const ReadParameters &params) : params_read(params) {
 
+#ifdef WIN32
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
         throw SeaVisionException("Failed to initialize Winsock.");
-
+#endif
 
     params_prli.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (params_prli.socket_descriptor == INVALID_SOCKET) {
+    if (params_prli.socket_descriptor == INVALID_SOCKET) { //  or params_prli.socket_descriptor == -1
+#ifdef WIN32
         WSACleanup();
+#endif
         throw SeaVisionException("Failed to create socket.");
     }
 
@@ -26,13 +29,17 @@ InputProcessor::InputProcessor(int prli_port, int navi_port, const ReadParameter
     if (bind(params_prli.socket_descriptor, (struct sockaddr *) &params_prli.server_address,
              sizeof(params_prli.server_address)) == SOCKET_ERROR) {
         closesocket(params_prli.socket_descriptor);
+#ifdef WIN32
         WSACleanup();
+#endif
         throw SeaVisionException("Error binding socket for PRLI. Input port >> " + std::to_string(prli_port));
     }
 
     params_navi.socket_descriptor = socket(AF_INET, SOCK_DGRAM, 0);
-    if (params_navi.socket_descriptor == INVALID_SOCKET) {
+    if (params_navi.socket_descriptor == INVALID_SOCKET or params_navi.socket_descriptor == -1) {
+#ifdef WIN32
         WSACleanup();
+#endif
         throw SeaVisionException("Failed to create socket.");
     }
 
@@ -43,7 +50,9 @@ InputProcessor::InputProcessor(int prli_port, int navi_port, const ReadParameter
     if (bind(params_navi.socket_descriptor, (struct sockaddr *) &params_navi.server_address,
              sizeof(params_navi.server_address)) == SOCKET_ERROR) {
         closesocket(params_navi.socket_descriptor);
+#ifdef WIN32
         WSACleanup();
+#endif
         throw SeaVisionException("Error binding socket for navigation. Input port >> " + std::to_string(navi_port));
     }
 
@@ -138,7 +147,7 @@ InputStructure InputProcessor::listen_message() {
 
             prli_ready = listen_prli();
             if (prli_ready >= ready_vec.size())
-                std::cout << "PRLI received: " << ready_vec.cast<int>().sum() * 100. / ready_vec.size() << "%"
+                std::cout << "PRLI received: filled on " << ready_vec.cast<int>().sum() * 100. / ready_vec.size() << "%"
                           << std::endl;
 
             if (!navi_ready) {
@@ -174,7 +183,9 @@ InputStructure InputProcessor::listen_message() {
 InputProcessor::~InputProcessor() {
     close(params_prli.socket_descriptor);
     close(params_navi.socket_descriptor);
+#ifdef WIN64
     WSACleanup();
+#endif
 }
 
 } // namespace

@@ -5,7 +5,13 @@
 #ifndef SEAVISION_SENDER_HPP
 #define SEAVISION_SENDER_HPP
 
+#ifdef WIN32
 #include <winsock2.h>
+#elif UNIX
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
+
 #include <string>
 #include <utility>
 #include <unistd.h>
@@ -18,17 +24,17 @@ namespace SeaVision {
 class Sender {
 
 protected:
+#ifdef WIN64
     WSADATA wsaData{};
-    SOCKET descriptor;
-    sockaddr_in address;
-    std::string ip;
-    int port;
+#endif
 
-    std::shared_ptr<FileReader> file_reader;
+    SocketParams socket_params{};
+
+    std::unique_ptr<FileReader> file_reader;
 
 public:
 
-    Sender(const std::string &ip, int port, const std::shared_ptr<FileReader>& file_reader);
+    Sender(const std::string &ip, int port, std::unique_ptr<FileReader> file_reader);
 
     void pass_queue_files(const std::string &path, int num);
 

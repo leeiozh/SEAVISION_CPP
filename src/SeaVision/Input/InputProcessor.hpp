@@ -5,7 +5,13 @@
 #ifndef SEAVISION_INPUTPROCESSOR_HPP
 #define SEAVISION_INPUTPROCESSOR_HPP
 
+#ifdef WIN32
 #include <winsock2.h>
+#elif UNIX
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
+
 #include <string>
 #include <utility>
 #include <unistd.h>
@@ -21,8 +27,9 @@ class InputProcessor {
      */
 
 protected:
+#ifdef WIN64
     WSADATA wsaData{};
-
+#endif
     SocketParams params_prli{};     // internal socket parameters
     SocketParams params_navi{};     // internal socket parameters
 

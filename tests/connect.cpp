@@ -16,14 +16,14 @@ int main() {
 
         ConfigReader config(curr_path.substr(0, curr_path.size() - 15) + "config.txt");
 
-        std::cout << "config read successfully" << std::endl;
+        std::cout << "Config file read successfully..." << std::endl;
 
         ReadParameters params{0, 1024, 1024, 4096};
         auto disp_direct = DispersionDirect(NUM_AREA);
 
         Mesh mesh = Mesh(params);
 
-        std::cout << "mesh creates successfully" << std::endl;
+        std::cout << "Mesh created successfully..." << std::endl;
 
         InputProcessor inp_proc(config.get_prli_port(), config.get_navi_port(), params);
         OutputProcessor output_proc(config.get_ip(), config.get_serv_port());

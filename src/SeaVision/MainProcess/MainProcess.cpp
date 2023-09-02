@@ -38,7 +38,7 @@ void MainProcess::remesh(const double step) {
 
         // TODO: see if this ok for longer steps
         area_vec[i] = Area(AREA_SIZE, AREA_SIZE, -angle, angle, AREA_DISTANCE_METERS);
-    }
+    }  
 
     std::cout << "You changed STEP!!! Remeshed successfully!!!" << std::endl;
 }
@@ -49,7 +49,7 @@ void MainProcess::run_realtime() {
     std::queue<InputStructure> data_queue;     // queue of last not more MEAN results
     std::mutex mtx;                            // mutex for changing queue when input processor want to change it
 
-    std::cout << "start run_realtime" << std::endl;
+    std::cout << "Start realtime processing..." << std::endl;
 
     std::thread reader_thread([&]() { // thread for reading data and convert it to InputStructure
 
@@ -63,7 +63,7 @@ void MainProcess::run_realtime() {
                 const auto end = std::chrono::steady_clock::now();
                 const std::chrono::duration<double> elapsed_seconds = end - start;
 
-                std::cout << "num shot " << index << ", shots in queue " << data_queue.size() << ", read time "
+                std::cout << "Read shot " << index << ", shots in queue " << data_queue.size() << ", read time "
                           << elapsed_seconds.count() << "s" << std::endl;
 
                 {
@@ -107,13 +107,13 @@ void MainProcess::run_realtime() {
                     const auto end = std::chrono::steady_clock::now();
                     const std::chrono::duration<double> elapsed_seconds = end - start;
 
-                    std::cout << "num shot " << index << ", shots in queue " << data_queue.size() << ", update time "
+                    std::cout << "Update shot " << index << ", shots in queue " << data_queue.size() << ", update time "
                               << elapsed_seconds.count() << "s" << std::endl;
 
                     OutputStructure res = get_mean_output(); // prepare results for sending
                     output_proc->pass_message(res); // sending
 
-                    std::cout << "pass result: dir " << res.dir[0] << ", swh " << res.swh[0] << ", vcos " << res.vcos[0]
+                    std::cout << "Pass result: dir " << res.dir[0] << ", swh " << res.swh[0] << ", vcos " << res.vcos[0]
                               << ", per " << res.per[0] << ", len " << res.len[0] << std::endl << std::endl;
                 }
 
